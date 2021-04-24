@@ -67,9 +67,8 @@ func main() {
 	if err := run(); err != nil {
 		if e, ok := tzstats.IsApiError(err); ok {
 			fmt.Printf("Error: %s: %s\n", e.Errors[0].Message, e.Errors[0].Detail)
-			fmt.Printf("Error: %T %v\n", err, err)
 		} else {
-			fmt.Printf("Error: %T %v\n", err, err)
+			fmt.Printf("Error: %v\n", err)
 		}
 		os.Exit(1)
 	}

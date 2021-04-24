@@ -219,6 +219,33 @@ type ContractValue struct {
 	Prim  micheline.Prim `json:"prim"`
 }
 
+func (v ContractValue) IsPrim() bool {
+	if v.Value == nil {
+		return false
+	}
+	if m, ok := v.Value.(map[string]interface{}); !ok {
+		return false
+	} else {
+		_, ok := m["prim"]
+		return ok
+	}
+}
+
+func (v ContractValue) AsPrim() (micheline.Prim, bool) {
+	if v.Prim.IsValid() {
+		return v.Prim, true
+	}
+
+	if v.IsPrim() {
+		buf, _ := json.Marshal(v.Value)
+		p := micheline.Prim{}
+		err := p.UnmarshalJSON(buf)
+		return p, err == nil
+	}
+
+	return micheline.InvalidPrim, false
+}
+
 func (v ContractValue) GetString(path string) (string, bool) {
 	return getPathString(v.Value, path)
 }
