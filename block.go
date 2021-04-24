@@ -30,7 +30,7 @@ type Block struct {
 	Validation          int                    `json:"validation_pass"`
 	Fitness             uint64                 `json:"fitness"`
 	Priority            int                    `json:"priority"`
-	Nonce               uint64                 `json:"nonce"`
+	Nonce               string                 `json:"nonce"`
 	VotingPeriodKind    tezos.VotingPeriodKind `json:"voting_period_kind"`
 	BakerId             uint64                 `json:"baker_id"`
 	Baker               tezos.Address          `json:"baker"`
@@ -168,7 +168,7 @@ func (b *Block) UnmarshalJSONBrief(data []byte) error {
 		case "priority":
 			block.Priority, err = strconv.Atoi(f.(json.Number).String())
 		case "nonce":
-			block.Nonce, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
+			block.Nonce = f.(string)
 		case "voting_period_kind":
 			block.VotingPeriodKind = tezos.ParseVotingPeriod(f.(string))
 		case "baker_id":
