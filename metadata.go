@@ -23,7 +23,7 @@ type Metadata struct {
 	Alias    *AliasMetadata    `json:"alias,omitempty"`
 	Baker    *BakerMetadata    `json:"baker,omitempty"`
 	Payout   *PayoutMetadata   `json:"payout,omitempty"`
-	Asset    *AssetMetadata    `json:"token,omitempty"`
+	Asset    *AssetMetadata    `json:"asset,omitempty"`
 	Location *LocationMetadata `json:"location,omitempty"`
 	Domain   *DomainMetadata   `json:"domain,omitempty"`
 	Media    *MediaMetadata    `json:"media,omitempty"`
@@ -69,7 +69,7 @@ func (m *Metadata) UnmarshalJSON(buf []byte) error {
 			"alias",
 			"baker",
 			"payout",
-			"token",
+			"asset",
 			"location",
 			"domain",
 			"media",
