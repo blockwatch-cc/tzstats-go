@@ -6,6 +6,7 @@ package tzstats
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -222,25 +223,24 @@ type BigmapUpdate struct {
 }
 
 type BigmapRow struct {
-	RowId       uint64               `json:"row_id"`
-	PrevId      uint64               `json:"prev_id"`
-	Address     tezos.Address        `json:"address"`
-	AccountId   uint64               `json:"account_id"`
-	ContractId  uint64               `json:"contract_id"`
-	OpId        uint64               `json:"op_id"`
-	Op          tezos.OpHash         `json:"op"`
-	Height      int64                `json:"height"`
-	Timestamp   time.Time            `json:"time"`
-	BigMapId    int64                `json:"bigmap_id"`
-	Action      micheline.DiffAction `json:"action"`
-	KeyHash     tezos.ExprHash       `json:"key_hash,omitempty"`
-	KeyType     string               `json:"key_type,omitempty"`
-	KeyEncoding string               `json:"key_encoding,omitempty"`
-	Key         string               `json:"key,omitempty"`
-	Value       string               `json:"value,omitempty"`
-	IsReplaced  bool                 `json:"is_replaced"`
-	IsDeleted   bool                 `json:"is_deleted"`
-	IsCopied    bool                 `json:"is_copied"`
+	RowId      uint64               `json:"row_id"`
+	KeyId      uint64               `json:"key_id"`
+	PrevId     uint64               `json:"prev_id"`
+	Address    tezos.Address        `json:"address"`
+	AccountId  uint64               `json:"account_id"`
+	ContractId uint64               `json:"contract_id"`
+	OpId       uint64               `json:"op_id"`
+	Op         tezos.OpHash         `json:"op"`
+	Height     int64                `json:"height"`
+	Timestamp  time.Time            `json:"time"`
+	BigMapId   int64                `json:"bigmap_id"`
+	Action     micheline.DiffAction `json:"action"`
+	KeyHash    tezos.ExprHash       `json:"key_hash,omitempty"`
+	Key        micheline.Prim       `json:"key,omitempty"`
+	Value      micheline.Prim       `json:"value,omitempty"`
+	IsReplaced bool                 `json:"is_replaced"`
+	IsDeleted  bool                 `json:"is_deleted"`
+	IsCopied   bool                 `json:"is_copied"`
 
 	columns []string `json:"-"`
 }
@@ -306,6 +306,8 @@ func (b *BigmapRow) UnmarshalJSONBrief(data []byte) error {
 		switch v {
 		case "row_id":
 			br.RowId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
+		case "key_id":
+			br.KeyId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
 		case "prev_id":
 			br.PrevId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
 		case "address":
@@ -332,14 +334,16 @@ func (b *BigmapRow) UnmarshalJSONBrief(data []byte) error {
 			b.Action, err = micheline.ParseDiffAction(f.(string))
 		case "key_hash":
 			b.KeyHash, err = tezos.ParseExprHash(f.(string))
-		case "key_type":
-			b.KeyType = f.(string)
-		case "key_encoding":
-			b.KeyEncoding = f.(string)
 		case "key":
-			b.Key = f.(string)
+			var buf []byte
+			if buf, err = hex.DecodeString(f.(string)); err == nil {
+				err = b.Key.UnmarshalBinary(buf)
+			}
 		case "value":
-			b.Value = f.(string)
+			var buf []byte
+			if buf, err = hex.DecodeString(f.(string)); err == nil {
+				err = b.Value.UnmarshalBinary(buf)
+			}
 		case "is_replaced":
 			br.IsReplaced, err = strconv.ParseBool(f.(json.Number).String())
 		case "is_deleted":
