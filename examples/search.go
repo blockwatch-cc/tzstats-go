@@ -1,22 +1,16 @@
 // Copyright (c) 2020-2021 Blockwatch Data Inc.
 // Author: alex@blockwatch.cc
 
-// Tzwatch QA Tool
-//
-// - roll snapshot checker
-//
+// Search contract calls for address used in parameters
 package main
 
 import (
 	"context"
-	// "encoding/json"
 	"flag"
 	"fmt"
 	"os"
 
-	// "blockwatch.cc/tzgo/tezos"
 	"blockwatch.cc/tzstats-go"
-
 	"github.com/echa/log"
 )
 
@@ -30,7 +24,6 @@ var (
 func init() {
 	flags.Usage = func() {}
 	flags.BoolVar(&verbose, "v", false, "be verbose")
-	// flags.StringVar(&node, "node", "http://127.0.0.1:8732", "Tezos node url")
 	flags.StringVar(&index, "index", "http://127.0.0.1:8000", "TzStats API url")
 }
 
@@ -58,7 +51,7 @@ func run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	c, err := tzstats.NewClient(nil, index)
+	c, err := tzstats.NewClient(index, nil)
 	if err != nil {
 		return err
 	}
@@ -136,11 +129,6 @@ func searchCalls(ctx context.Context, c *tzstats.Client) error {
 			count++
 			if found {
 				log.Infof("%s matches", v.Hash)
-				// buf, err := json.MarshalIndent(v, "", "  ")
-				// if err != nil {
-				// 	return fmt.Errorf("Failed marshalling op %s: %v", v.Hash, err)
-				// }
-				// log.Info(string(buf))
 			}
 		}
 		plog.Log(len(calls))
@@ -227,11 +215,6 @@ func search(ctx context.Context, c *tzstats.Client) error {
 			count++
 			if found {
 				log.Infof("%s matches", v.Hash)
-				// buf, err := json.MarshalIndent(v, "", "  ")
-				// if err != nil {
-				// 	return fmt.Errorf("Failed marshalling op %s: %v", v.Hash, err)
-				// }
-				// log.Info(string(buf))
 			}
 		}
 		plog.Log(len(ops.Ops))

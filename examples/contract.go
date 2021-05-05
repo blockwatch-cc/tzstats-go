@@ -86,7 +86,7 @@ func run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	c, err := tzstats.NewClient(nil, index)
+	c, err := tzstats.NewClient(index, nil)
 	if err != nil {
 		return err
 	}

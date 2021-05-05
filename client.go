@@ -17,8 +17,8 @@ import (
 )
 
 var (
-	ClientVersion = "1.0.0"
-	userAgent     = "tzgo/v" + ClientVersion
+	ClientVersion = "0.9.0"
+	userAgent     = "tzstats-go/v" + ClientVersion
 	DefaultLimit  = 50000
 )
 
@@ -28,7 +28,7 @@ type Client struct {
 	UserAgent  string
 }
 
-func NewClient(httpClient *http.Client, url string) (*Client, error) {
+func NewClient(url string, httpClient *http.Client) (*Client, error) {
 	params, err := ParseParams(url)
 	if err != nil {
 		return nil, err
