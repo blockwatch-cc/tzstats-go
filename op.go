@@ -78,8 +78,19 @@ type Op struct {
 }
 
 type OpList struct {
-	Ops     []*Op
+	Rows    []*Op
 	columns []string
+}
+
+func (l OpList) Len() int {
+	return len(l.Rows)
+}
+
+func (l OpList) Cursor() uint64 {
+	if len(l.Rows) == 0 {
+		return 0
+	}
+	return l.Rows[len(l.Rows)-1].RowId
 }
 
 func (l *OpList) UnmarshalJSON(data []byte) error {
@@ -102,7 +113,7 @@ func (l *OpList) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		op.columns = nil
-		l.Ops = append(l.Ops, op)
+		l.Rows = append(l.Rows, op)
 	}
 	return nil
 }

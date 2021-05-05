@@ -169,10 +169,10 @@ func search(ctx context.Context, c *tzstats.Client) error {
 		if err != nil {
 			return err
 		}
-		if len(ops.Ops) == 0 {
+		if ops.Len() == 0 {
 			break
 		}
-		for _, v := range ops.Ops {
+		for _, v := range ops.Rows {
 			found := false
 			if v.Parameters != nil {
 				err := v.Parameters.Walk("", func(path string, value interface{}) error {
@@ -224,8 +224,8 @@ func search(ctx context.Context, c *tzstats.Client) error {
 				log.Infof("%s matches", v.Hash)
 			}
 		}
-		plog.Log(len(ops.Ops))
-		cursor = ops.Ops[len(ops.Ops)-1].RowId
+		plog.Log(ops.Len())
+		cursor = ops.Cursor()
 	}
 	log.Infof("Processed %d calls", count)
 	return nil

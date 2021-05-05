@@ -49,8 +49,19 @@ type Contract struct {
 }
 
 type ContractList struct {
-	Contracts []*Contract
-	columns   []string
+	Rows    []*Contract
+	columns []string
+}
+
+func (l ContractList) Len() int {
+	return len(l.Rows)
+}
+
+func (l ContractList) Cursor() uint64 {
+	if len(l.Rows) == 0 {
+		return 0
+	}
+	return l.Rows[len(l.Rows)-1].RowId
 }
 
 func (l *ContractList) UnmarshalJSON(data []byte) error {
@@ -72,7 +83,7 @@ func (l *ContractList) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		r.columns = nil
-		l.Contracts = append(l.Contracts, r)
+		l.Rows = append(l.Rows, r)
 	}
 	return nil
 }

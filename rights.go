@@ -35,8 +35,19 @@ type Right struct {
 }
 
 type RightsList struct {
-	Rights  []*Right
+	Rows    []*Right
 	columns []string
+}
+
+func (l RightsList) Len() int {
+	return len(l.Rows)
+}
+
+func (l RightsList) Cursor() uint64 {
+	if len(l.Rows) == 0 {
+		return 0
+	}
+	return l.Rows[len(l.Rows)-1].RowId
 }
 
 func (l *RightsList) UnmarshalJSON(data []byte) error {
@@ -59,7 +70,7 @@ func (l *RightsList) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		r.columns = nil
-		l.Rights = append(l.Rights, r)
+		l.Rows = append(l.Rows, r)
 	}
 	return nil
 }

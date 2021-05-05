@@ -102,8 +102,19 @@ type Account struct {
 }
 
 type AccountList struct {
-	Accounts []*Account
-	columns  []string
+	Rows    []*Account
+	columns []string
+}
+
+func (l AccountList) Len() int {
+	return len(l.Rows)
+}
+
+func (l AccountList) Cursor() uint64 {
+	if len(l.Rows) == 0 {
+		return 0
+	}
+	return l.Rows[len(l.Rows)-1].RowId
 }
 
 func (l *AccountList) UnmarshalJSON(data []byte) error {
@@ -125,7 +136,7 @@ func (l *AccountList) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		r.columns = nil
-		l.Accounts = append(l.Accounts, r)
+		l.Rows = append(l.Rows, r)
 	}
 	return nil
 }

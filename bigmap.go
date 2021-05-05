@@ -250,6 +250,13 @@ type BigmapRowList struct {
 	columns []string
 }
 
+func (l BigmapRowList) Cursor() uint64 {
+	if len(l.Rows) == 0 {
+		return 0
+	}
+	return l.Rows[len(l.Rows)-1].RowId
+}
+
 func (l *BigmapRowList) UnmarshalJSON(data []byte) error {
 	if len(data) == 0 || bytes.Compare(data, []byte("null")) == 0 {
 		return nil

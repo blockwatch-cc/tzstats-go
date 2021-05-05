@@ -37,8 +37,19 @@ type Snapshot struct {
 }
 
 type SnapshotList struct {
-	Snapshots []*Snapshot
-	columns   []string
+	Rows    []*Snapshot
+	columns []string
+}
+
+func (l SnapshotList) Len() int {
+	return len(l.Rows)
+}
+
+func (l SnapshotList) Cursor() uint64 {
+	if len(l.Rows) == 0 {
+		return 0
+	}
+	return l.Rows[len(l.Rows)-1].RowId
 }
 
 func (l *SnapshotList) UnmarshalJSON(data []byte) error {
@@ -61,7 +72,7 @@ func (l *SnapshotList) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		r.columns = nil
-		l.Snapshots = append(l.Snapshots, r)
+		l.Rows = append(l.Rows, r)
 	}
 	return nil
 }
