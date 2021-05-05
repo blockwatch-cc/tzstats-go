@@ -410,7 +410,7 @@ func (p OpParams) WithCollapse() OpParams {
 	return p
 }
 
-func (c *Client) GetOp(ctx context.Context, hash string, params OpParams) ([]*Op, error) {
+func (c *Client) GetOp(ctx context.Context, hash tezos.OpHash, params OpParams) ([]*Op, error) {
 	o := make([]*Op, 0)
 	u := params.AppendQuery(fmt.Sprintf("/explorer/op/%s", hash))
 	if err := c.get(ctx, u, nil, &o); err != nil {

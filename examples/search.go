@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 
+	"blockwatch.cc/tzgo/tezos"
 	"blockwatch.cc/tzstats-go"
 	"github.com/echa/log"
 )
@@ -65,8 +66,14 @@ func run() error {
 
 // Using Explorer API
 func searchCalls(ctx context.Context, c *tzstats.Client) error {
-	recv := flags.Arg(0)
-	addr := flags.Arg(1)
+	recv, err := tezos.ParseAddress(flags.Arg(0))
+	if err != nil {
+		return err
+	}
+	addr, err := tezos.ParseAddress(flags.Arg(1))
+	if err != nil {
+		return err
+	}
 	log.Infof("Searching calls to %s for address %s", recv, addr)
 
 	p := tzstats.NewContractParams().WithLimit(500)
@@ -89,8 +96,8 @@ func searchCalls(ctx context.Context, c *tzstats.Client) error {
 					if value == nil {
 						return nil
 					}
-					if s, ok := value.(string); ok {
-						found = found || s == addr
+					if s, ok := value.(tezos.Address); ok {
+						found = found || s.Equal(addr)
 					}
 					return nil
 				})
@@ -103,8 +110,8 @@ func searchCalls(ctx context.Context, c *tzstats.Client) error {
 					if value == nil {
 						return nil
 					}
-					if s, ok := value.(string); ok {
-						found = found || s == addr
+					if s, ok := value.(tezos.Address); ok {
+						found = found || s.Equal(addr)
 					}
 					return nil
 				})
@@ -117,8 +124,8 @@ func searchCalls(ctx context.Context, c *tzstats.Client) error {
 					if value == nil {
 						return nil
 					}
-					if s, ok := value.(string); ok {
-						found = found || s == addr
+					if s, ok := value.(tezos.Address); ok {
+						found = found || s.Equal(addr)
 					}
 					return nil
 				})

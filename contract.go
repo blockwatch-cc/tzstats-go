@@ -383,7 +383,7 @@ func (c *Client) QueryContracts(ctx context.Context, filter FilterList, cols []s
 	return q.Run(ctx)
 }
 
-func (c *Client) GetContract(ctx context.Context, addr string, params ContractParams) (*Contract, error) {
+func (c *Client) GetContract(ctx context.Context, addr tezos.Address, params ContractParams) (*Contract, error) {
 	cc := &Contract{}
 	u := params.AppendQuery(fmt.Sprintf("/explorer/contract/%s", addr))
 	if err := c.get(ctx, u, nil, cc); err != nil {
@@ -392,7 +392,7 @@ func (c *Client) GetContract(ctx context.Context, addr string, params ContractPa
 	return cc, nil
 }
 
-func (c *Client) GetContractScript(ctx context.Context, addr string, params ContractParams) (*ContractScript, error) {
+func (c *Client) GetContractScript(ctx context.Context, addr tezos.Address, params ContractParams) (*ContractScript, error) {
 	cc := &ContractScript{}
 	u := params.AppendQuery(fmt.Sprintf("/explorer/contract/%s/script", addr))
 	if err := c.get(ctx, u, nil, cc); err != nil {
@@ -401,7 +401,7 @@ func (c *Client) GetContractScript(ctx context.Context, addr string, params Cont
 	return cc, nil
 }
 
-func (c *Client) GetContractStorage(ctx context.Context, addr string, params ContractParams) (*ContractStorage, error) {
+func (c *Client) GetContractStorage(ctx context.Context, addr tezos.Address, params ContractParams) (*ContractStorage, error) {
 	cc := &ContractStorage{}
 	u := params.AppendQuery(fmt.Sprintf("/explorer/contract/%s/storage", addr))
 	if err := c.get(ctx, u, nil, cc); err != nil {
@@ -410,7 +410,7 @@ func (c *Client) GetContractStorage(ctx context.Context, addr string, params Con
 	return cc, nil
 }
 
-func (c *Client) GetContractCalls(ctx context.Context, addr string, params ContractParams) ([]*Op, error) {
+func (c *Client) GetContractCalls(ctx context.Context, addr tezos.Address, params ContractParams) ([]*Op, error) {
 	calls := make([]*Op, 0)
 	u := params.AppendQuery(fmt.Sprintf("/explorer/contract/%s/calls", addr))
 	if err := c.get(ctx, u, nil, &calls); err != nil {

@@ -93,25 +93,41 @@ func run() error {
 
 	switch cmd {
 	case "info":
-		return getContractInfo(ctx, c, flags.Arg(1))
+		addr, err := tezos.ParseAddress(flags.Arg(1))
+		if err != nil {
+			return err
+		}
+		return getContractInfo(ctx, c, addr)
 	case "type":
-		return getContractType(ctx, c, flags.Arg(1))
+		addr, err := tezos.ParseAddress(flags.Arg(1))
+		if err != nil {
+			return err
+		}
+		return getContractType(ctx, c, addr)
 	case "entry":
-		return getContractEntrypoints(ctx, c, flags.Arg(1))
+		addr, err := tezos.ParseAddress(flags.Arg(1))
+		if err != nil {
+			return err
+		}
+		return getContractEntrypoints(ctx, c, addr)
 	case "storage":
-		return getContractStorage(ctx, c, flags.Arg(1))
+		addr, err := tezos.ParseAddress(flags.Arg(1))
+		if err != nil {
+			return err
+		}
+		return getContractStorage(ctx, c, addr)
 	case "params":
-		return getContractCall(ctx, c, flags.Arg(1))
+		oh, err := tezos.ParseOpHash(flags.Arg(1))
+		if err != nil {
+			return err
+		}
+		return getContractCall(ctx, c, oh)
 	default:
 		return fmt.Errorf("unsupported command %s", cmd)
 	}
 }
 
-func getContractInfo(ctx context.Context, c *tzstats.Client, addr string) error {
-	_, err := tezos.ParseAddress(addr)
-	if err != nil {
-		return err
-	}
+func getContractInfo(ctx context.Context, c *tzstats.Client, addr tezos.Address) error {
 	cc, err := c.GetContract(ctx, addr, tzstats.NewContractParams())
 	if err != nil {
 		return err
@@ -121,11 +137,7 @@ func getContractInfo(ctx context.Context, c *tzstats.Client, addr string) error 
 	return nil
 }
 
-func getContractType(ctx context.Context, c *tzstats.Client, addr string) error {
-	_, err := tezos.ParseAddress(addr)
-	if err != nil {
-		return err
-	}
+func getContractType(ctx context.Context, c *tzstats.Client, addr tezos.Address) error {
 	script, err := c.GetContractScript(ctx, addr, tzstats.NewContractParams().WithPrim())
 	if err != nil {
 		return err
@@ -139,11 +151,7 @@ func getContractType(ctx context.Context, c *tzstats.Client, addr string) error 
 	return nil
 }
 
-func getContractEntrypoints(ctx context.Context, c *tzstats.Client, addr string) error {
-	_, err := tezos.ParseAddress(addr)
-	if err != nil {
-		return err
-	}
+func getContractEntrypoints(ctx context.Context, c *tzstats.Client, addr tezos.Address) error {
 	cc, err := c.GetContractScript(ctx, addr, tzstats.NewContractParams().WithPrim())
 	if err != nil {
 		return err
@@ -161,11 +169,7 @@ func getContractEntrypoints(ctx context.Context, c *tzstats.Client, addr string)
 	return nil
 }
 
-func getContractStorage(ctx context.Context, c *tzstats.Client, addr string) error {
-	_, err := tezos.ParseAddress(addr)
-	if err != nil {
-		return err
-	}
+func getContractStorage(ctx context.Context, c *tzstats.Client, addr tezos.Address) error {
 	p := tzstats.NewContractParams().WithPrim()
 	cc, err := c.GetContractScript(ctx, addr, p)
 	if err != nil {
@@ -184,11 +188,7 @@ func getContractStorage(ctx context.Context, c *tzstats.Client, addr string) err
 	return nil
 }
 
-func getContractCall(ctx context.Context, c *tzstats.Client, hash string) error {
-	_, err := tezos.ParseOpHash(hash)
-	if err != nil {
-		return err
-	}
+func getContractCall(ctx context.Context, c *tzstats.Client, hash tezos.OpHash) error {
 	ops, err := c.GetOp(ctx, hash, tzstats.NewOpParams().WithPrim())
 	if err != nil {
 		return err
@@ -200,7 +200,7 @@ func getContractCall(ctx context.Context, c *tzstats.Client, hash string) error 
 		if !op.IsContract {
 			continue
 		}
-		script, err := c.GetContractScript(ctx, op.Receiver.String(), tzstats.NewContractParams().WithPrim())
+		script, err := c.GetContractScript(ctx, op.Receiver, tzstats.NewContractParams().WithPrim())
 		if err != nil {
 			return err
 		}

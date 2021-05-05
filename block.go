@@ -345,7 +345,7 @@ func (p BlockParams) WithRights() BlockParams {
 	return p
 }
 
-func (c *Client) GetBlock(ctx context.Context, hash string, params BlockParams) (*Block, error) {
+func (c *Client) GetBlock(ctx context.Context, hash tezos.BlockHash, params BlockParams) (*Block, error) {
 	b := &Block{}
 	u := params.AppendQuery(fmt.Sprintf("/explorer/block/%s", hash))
 	if err := c.get(ctx, u, nil, b); err != nil {
@@ -354,7 +354,16 @@ func (c *Client) GetBlock(ctx context.Context, hash string, params BlockParams) 
 	return b, nil
 }
 
-func (c *Client) GetBlockWithOps(ctx context.Context, hash string, params BlockParams) (*Block, error) {
+func (c *Client) GetBlockHeight(ctx context.Context, height int64, params BlockParams) (*Block, error) {
+	b := &Block{}
+	u := params.AppendQuery(fmt.Sprintf("/explorer/block/%d", height))
+	if err := c.get(ctx, u, nil, b); err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func (c *Client) GetBlockWithOps(ctx context.Context, hash tezos.BlockHash, params BlockParams) (*Block, error) {
 	b := &Block{}
 	u := params.AppendQuery(fmt.Sprintf("/explorer/block/%s/op", hash))
 	if err := c.get(ctx, u, nil, b); err != nil {
@@ -363,7 +372,7 @@ func (c *Client) GetBlockWithOps(ctx context.Context, hash string, params BlockP
 	return b, nil
 }
 
-func (c *Client) GetBlockOps(ctx context.Context, hash string, params OpParams) ([]*Op, error) {
+func (c *Client) GetBlockOps(ctx context.Context, hash tezos.BlockHash, params OpParams) ([]*Op, error) {
 	ops := make([]*Op, 0)
 	u := params.AppendQuery(fmt.Sprintf("/explorer/block/%s/operations", hash))
 	if err := c.get(ctx, u, nil, &ops); err != nil {

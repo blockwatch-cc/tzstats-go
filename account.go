@@ -408,7 +408,7 @@ func (c *Client) QueryAccounts(ctx context.Context, filter FilterList, cols []st
 	return q.Run(ctx)
 }
 
-func (c *Client) GetAccount(ctx context.Context, addr string, params AccountParams) (*Account, error) {
+func (c *Client) GetAccount(ctx context.Context, addr tezos.Address, params AccountParams) (*Account, error) {
 	a := &Account{}
 	u := params.AppendQuery(fmt.Sprintf("/explorer/account/%s", addr))
 	if err := c.get(ctx, u, nil, a); err != nil {
@@ -417,7 +417,7 @@ func (c *Client) GetAccount(ctx context.Context, addr string, params AccountPara
 	return a, nil
 }
 
-func (c *Client) GetAccountContracts(ctx context.Context, addr string, params AccountParams) ([]*Account, error) {
+func (c *Client) GetAccountContracts(ctx context.Context, addr tezos.Address, params AccountParams) ([]*Account, error) {
 	cc := make([]*Account, 0)
 	u := params.AppendQuery(fmt.Sprintf("/explorer/account/%s/contracts", addr))
 	if err := c.get(ctx, u, nil, &cc); err != nil {
@@ -426,7 +426,7 @@ func (c *Client) GetAccountContracts(ctx context.Context, addr string, params Ac
 	return cc, nil
 }
 
-func (c *Client) GetAccountOps(ctx context.Context, addr string, params OpParams) ([]*Op, error) {
+func (c *Client) GetAccountOps(ctx context.Context, addr tezos.Address, params OpParams) ([]*Op, error) {
 	ops := make([]*Op, 0)
 	u := params.AppendQuery(fmt.Sprintf("/explorer/contract/%s/operations", addr))
 	if err := c.get(ctx, u, nil, &ops); err != nil {
