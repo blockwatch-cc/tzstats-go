@@ -23,7 +23,7 @@ type Snapshot struct {
 	Index        int64         `json:"index"`
 	Rolls        int64         `json:"rolls"`
 	AccountId    uint64        `json:"account_id"`
-	Account      tezos.Address `json:"address"`
+	Account      tezos.Address `json:"address"` // [sic]
 	DelegateId   uint64        `json:"delegate_id"`
 	Delegate     tezos.Address `json:"delegate"`
 	IsDelegate   bool          `json:"is_delegate"`
