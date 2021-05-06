@@ -236,12 +236,13 @@ func (c *Client) handleRequest(req *request) {
 			}
 			return
 		}
+		err = fmt.Errorf("unmarshalling reply: %v", err)
 	}
 	req.responseChan <- &response{
 		status:  resp.StatusCode,
 		request: req.String(),
 		headers: mergeHeaders(req.responseHeaders, resp.Header, resp.Trailer),
 		result:  respBytes,
-		err:     fmt.Errorf("unmarshalling reply: %v", err),
+		err:     err,
 	}
 }

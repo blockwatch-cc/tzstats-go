@@ -17,7 +17,7 @@ import (
 type Metadata struct {
 	// address + id together are used as unique identifier
 	Address tezos.Address `json:"address"`
-	AssetId int64         `json:"asset_id,omitempty"`
+	AssetId *int64        `json:"asset_id,omitempty"`
 
 	// public extensions
 	Alias    *AliasMetadata    `json:"alias,omitempty"`
@@ -193,8 +193,10 @@ func (c *Client) GetAssetMetadata(ctx context.Context, addr tezos.Address, asset
 	return resp, nil
 }
 
-func (c *Client) CreateMetadata(ctx context.Context, metadata []Metadata) error {
-	return c.post(ctx, "/explorer/metadata", nil, &metadata, nil)
+func (c *Client) CreateMetadata(ctx context.Context, metadata []Metadata) ([]Metadata, error) {
+	resp := make([]Metadata, 0)
+	err := c.post(ctx, "/explorer/metadata", nil, &metadata, &resp)
+	return resp, err
 }
 
 func (c *Client) UpdateMetadata(ctx context.Context, alias Metadata) (Metadata, error) {
@@ -205,7 +207,11 @@ func (c *Client) UpdateMetadata(ctx context.Context, alias Metadata) (Metadata, 
 	return resp, nil
 }
 
-func (c *Client) RemoveMetadata(ctx context.Context, addr tezos.Address, assetId int64) error {
+func (c *Client) RemoveAccountMetadata(ctx context.Context, addr tezos.Address) error {
+	return c.delete(ctx, fmt.Sprintf("/explorer/metadata/%s", addr), nil)
+}
+
+func (c *Client) RemoveAssetMetadata(ctx context.Context, addr tezos.Address, assetId int64) error {
 	return c.delete(ctx, fmt.Sprintf("/explorer/metadata/%s/%d", addr, assetId), nil)
 }
 
