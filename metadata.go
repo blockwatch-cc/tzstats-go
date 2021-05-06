@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"blockwatch.cc/tzgo/tezos"
@@ -201,7 +202,11 @@ func (c *Client) CreateMetadata(ctx context.Context, metadata []Metadata) ([]Met
 
 func (c *Client) UpdateMetadata(ctx context.Context, alias Metadata) (Metadata, error) {
 	var resp Metadata
-	if err := c.put(ctx, fmt.Sprintf("/explorer/metadata/%s/%d", alias.Address, alias.AssetId), nil, &alias, &resp); err != nil {
+	u := fmt.Sprintf("/explorer/metadata/%s", alias.Address)
+	if alias.AssetId != nil {
+		u += "/" + strconv.FormatInt(*alias.AssetId, 10)
+	}
+	if err := c.put(ctx, u, nil, &alias, &resp); err != nil {
 		return resp, err
 	}
 	return resp, nil
