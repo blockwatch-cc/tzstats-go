@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"blockwatch.cc/tzgo/micheline"
 	"blockwatch.cc/tzgo/tezos"
 	"github.com/echa/code/iata"
 	"github.com/echa/code/iso"
@@ -163,11 +164,94 @@ type SocialMetadata struct {
 }
 
 type Tz16Metadata struct {
-	// TODO
+	Name        string       `json:"name"`
+	Description string       `json:"description,omitempty"`
+	Version     string       `json:"version,omitempty"`
+	License     *Tz16License `json:"license,omitempty"`
+	Authors     []string     `json:"authors,omitempty"`
+	Homepage    string       `json:"homepage,omitempty"`
+	Source      *Tz16Source  `json:"source,omitempty"`
+	Interfaces  []string     `json:"interfaces,omitempty"`
+	Errors      []Tz16Error  `json:"errors,omitempty"`
+	Views       []Tz16View   `json:"views,omitempty"`
+}
+
+type Tz16License struct {
+	Name    string `json:"name"`
+	Details string `json:"details,omitempty"`
+}
+
+type Tz16Source struct {
+	Tools    []string `json:"tools"`
+	Location string   `json:"location,omitempty"`
+}
+
+type Tz16Error struct {
+	Error     *micheline.Prim `json:"error,omitempty"`
+	Expansion *micheline.Prim `json:"expansion,omitempty"`
+	Languages []string        `json:"languages,omitempty"`
+	View      string          `json:"view,omitempty"`
+}
+
+type Tz16View struct {
+	Name            string        `json:"name"`
+	Description     string        `json:"description,omitempty"`
+	Pure            bool          `json:"pure,omitempty"`
+	Implementations []interface{} `json:"implementations,omitempty"`
 }
 
 type Tz21Metadata struct {
-	// TODO
+	Description        string          `json:"description"`
+	Minter             tezos.Address   `json:"minter"`
+	Creators           []string        `json:"creators"`
+	Contributors       []string        `json:"contributors"`
+	Publishers         []string        `json:"publishers"`
+	Date               time.Time       `json:"date"`
+	BlockLevel         int64           `json:"blockLevel"`
+	Type               string          `json:"type"`
+	Tags               []string        `json:"tags"`
+	Genres             []string        `json:"genres"`
+	Language           string          `json:"language"`
+	Identifier         string          `json:"identifier"`
+	Rights             string          `json:"rights"`
+	RightUri           string          `json:"rightUri"`
+	ArtifactUri        string          `json:"artifactUri"`
+	DisplayUri         string          `json:"displayUri"`
+	ThumbnailUri       string          `json:"thumbnailUri"`
+	ExternalUri        string          `json:"externalUri"`
+	IsTransferable     bool            `json:"isTransferable"`
+	IsBooleanAmount    bool            `json:"isBooleanAmount"`
+	ShouldPreferSymbol bool            `json:"shouldPreferSymbol"`
+	Formats            []Tz21Format    `json:"formats"`
+	Attributes         []Tz21Attribute `json:"attributes"`
+	Assets             []Tz21Metadata  `json:"assets"`
+}
+
+type Tz21Format struct {
+	Uri        string        `json:"uri"`
+	Hash       string        `json:"hash"`
+	MimeType   string        `json:"mimeType"`
+	FileSize   int64         `json:"fileSize"`
+	FileName   string        `json:"fileName"`
+	Duration   string        `json:"duration"`
+	Dimensions Tz21Dimension `json:"dimensions"`
+	DataRate   Tz21DataRate  `json:"dataRate"`
+}
+
+type Tz21Attribute struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+	Type  string `json:"type,omitempty"`
+}
+
+type Tz21Dimension struct {
+	Value string `json:"value"`
+	Unit  string `json:"unit"`
+}
+
+type Tz21DataRate struct {
+	Value string `json:"value"`
+	Unit  string `json:"unit"`
 }
 
 func (c *Client) ListMetadata(ctx context.Context) ([]Metadata, error) {
