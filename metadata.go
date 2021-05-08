@@ -256,7 +256,7 @@ type Tz21DataRate struct {
 
 func (c *Client) ListMetadata(ctx context.Context) ([]Metadata, error) {
 	resp := make([]Metadata, 0)
-	if err := c.get(ctx, "/explorer/metadata", nil, &resp); err != nil {
+	if err := c.get(ctx, "/metadata", nil, &resp); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -264,7 +264,7 @@ func (c *Client) ListMetadata(ctx context.Context) ([]Metadata, error) {
 
 func (c *Client) GetAccountMetadata(ctx context.Context, addr tezos.Address) (Metadata, error) {
 	var resp Metadata
-	if err := c.get(ctx, "/explorer/metadata/"+addr.String(), nil, &resp); err != nil {
+	if err := c.get(ctx, "/metadata/"+addr.String(), nil, &resp); err != nil {
 		return resp, err
 	}
 	return resp, nil
@@ -272,7 +272,7 @@ func (c *Client) GetAccountMetadata(ctx context.Context, addr tezos.Address) (Me
 
 func (c *Client) GetAssetMetadata(ctx context.Context, addr tezos.Address, assetId int64) (Metadata, error) {
 	var resp Metadata
-	if err := c.get(ctx, fmt.Sprintf("/explorer/metadata/%s/%d", addr, assetId), nil, &resp); err != nil {
+	if err := c.get(ctx, fmt.Sprintf("/metadata/%s/%d", addr, assetId), nil, &resp); err != nil {
 		return resp, err
 	}
 	return resp, nil
@@ -280,13 +280,13 @@ func (c *Client) GetAssetMetadata(ctx context.Context, addr tezos.Address, asset
 
 func (c *Client) CreateMetadata(ctx context.Context, metadata []Metadata) ([]Metadata, error) {
 	resp := make([]Metadata, 0)
-	err := c.post(ctx, "/explorer/metadata", nil, &metadata, &resp)
+	err := c.post(ctx, "/metadata", nil, &metadata, &resp)
 	return resp, err
 }
 
 func (c *Client) UpdateMetadata(ctx context.Context, alias Metadata) (Metadata, error) {
 	var resp Metadata
-	u := fmt.Sprintf("/explorer/metadata/%s", alias.Address)
+	u := fmt.Sprintf("/metadata/%s", alias.Address)
 	if alias.AssetId != nil {
 		u += "/" + strconv.FormatInt(*alias.AssetId, 10)
 	}
@@ -297,13 +297,13 @@ func (c *Client) UpdateMetadata(ctx context.Context, alias Metadata) (Metadata, 
 }
 
 func (c *Client) RemoveAccountMetadata(ctx context.Context, addr tezos.Address) error {
-	return c.delete(ctx, fmt.Sprintf("/explorer/metadata/%s", addr), nil)
+	return c.delete(ctx, fmt.Sprintf("/metadata/%s", addr), nil)
 }
 
 func (c *Client) RemoveAssetMetadata(ctx context.Context, addr tezos.Address, assetId int64) error {
-	return c.delete(ctx, fmt.Sprintf("/explorer/metadata/%s/%d", addr, assetId), nil)
+	return c.delete(ctx, fmt.Sprintf("/metadata/%s/%d", addr, assetId), nil)
 }
 
 func (c *Client) PurgeMetadata(ctx context.Context) error {
-	return c.delete(ctx, "/explorer/metadata", nil)
+	return c.delete(ctx, "/metadata", nil)
 }
