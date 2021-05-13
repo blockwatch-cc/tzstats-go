@@ -104,7 +104,6 @@ type AssetMetadata struct {
 	Decimals int      `json:"decimals,omitempty"`
 	Version  string   `json:"version,omitempty"`
 	Homepage string   `json:"homepage,omitempty"`
-	Genres   []string `json:"genres,omitempty"`
 	Tags     []string `json:"tags,omitempty"`
 }
 
