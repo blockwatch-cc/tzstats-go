@@ -16,6 +16,12 @@ import (
 	"github.com/echa/code/iso"
 )
 
+type MetadataDescriptor struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Image       string `json:"image"`
+}
+
 type Metadata struct {
 	// address + id together are used as unique identifier
 	Address tezos.Address `json:"address"`
@@ -305,4 +311,12 @@ func (c *Client) RemoveAssetMetadata(ctx context.Context, addr tezos.Address, as
 
 func (c *Client) PurgeMetadata(ctx context.Context) error {
 	return c.delete(ctx, "/metadata", nil)
+}
+
+func (c *Client) Describe(ctx context.Context, ident string) (MetadataDescriptor, error) {
+	var resp MetadataDescriptor
+	if err := c.get(ctx, "/metadata/describe/"+ident, nil, &resp); err != nil {
+		return resp, err
+	}
+	return resp, nil
 }
