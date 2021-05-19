@@ -20,8 +20,12 @@ var (
 	ClientVersion = "0.9.0"
 	DefaultLimit  = 50000
 	userAgent     = "tzstats-go/v" + ClientVersion
-	mainUrl       = "https://api.tzstats.com"
+	DefaultClient *Client
 )
+
+func init() {
+	DefaultClient, _ = NewClient("https://api.tzstats.com", nil)
+}
 
 type Client struct {
 	httpClient *http.Client
@@ -42,11 +46,6 @@ func NewClient(url string, httpClient *http.Client) (*Client, error) {
 		params:     params,
 		UserAgent:  userAgent,
 	}, nil
-}
-
-func NewDefaultClient() *Client {
-	c, _ := NewClient(mainUrl, nil)
-	return c
 }
 
 func (c *Client) get(ctx context.Context, path string, headers http.Header, result interface{}) error {

@@ -146,6 +146,7 @@ type Supply struct {
 	Liquid              float64   `json:"liquid"`
 	Delegated           float64   `json:"delegated"`
 	Staking             float64   `json:"staking"`
+	Shielded            float64   `json:"shielded"`
 	ActiveDelegated     float64   `json:"active_delegated"`
 	ActiveStaking       float64   `json:"active_staking"`
 	InactiveDelegated   float64   `json:"inactive_delegated"`
