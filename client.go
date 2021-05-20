@@ -21,10 +21,12 @@ var (
 	DefaultLimit  = 50000
 	userAgent     = "tzstats-go/v" + ClientVersion
 	DefaultClient *Client
+	IpfsClient    *Client
 )
 
 func init() {
 	DefaultClient, _ = NewClient("https://api.tzstats.com", nil)
+	IpfsClient, _ = NewClient("https://ipfs.tzstats.com/ipfs/", nil)
 }
 
 type Client struct {
