@@ -293,6 +293,11 @@ func (v ContractValue) Walk(path string, fn ValueWalkerFunc) error {
 	return walkValueMap(path, val, fn)
 }
 
+func (v ContractValue) Unmarshal(val interface{}) error {
+	buf, _ := json.Marshal(v.Value)
+	return json.Unmarshal(buf, val)
+}
+
 type ContractParams struct {
 	Params
 }

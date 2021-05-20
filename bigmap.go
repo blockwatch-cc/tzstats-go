@@ -32,16 +32,16 @@ type Bigmap struct {
 	IsRemoved       bool              `json:"is_removed"`
 	KeyType         micheline.Typedef `json:"key_type"`
 	ValueType       micheline.Typedef `json:"value_type"`
+	KeyTypePrim     micheline.Prim    `json:"key_type_prim"`
+	ValueTypePrim   micheline.Prim    `json:"value_type_prim"`
 }
 
-type BigmapType struct {
-	Contract      tezos.Address     `json:"contract"`
-	BigMapId      int64             `json:"bigmap_id"`
-	KeyEncoding   string            `json:"key_encoding"`
-	KeyType       micheline.Typedef `json:"key_type"`
-	ValueType     micheline.Typedef `json:"value_type"`
-	KeyTypePrim   micheline.Prim    `json:"key_type_prim"`
-	ValueTypePrim micheline.Prim    `json:"value_type_prim"`
+func (b Bigmap) MakeKeyType() micheline.Type {
+	return micheline.NewType(b.KeyTypePrim)
+}
+
+func (b Bigmap) MakeValueType() micheline.Type {
+	return micheline.NewType(b.ValueTypePrim)
 }
 
 type BigmapMeta struct {
@@ -166,6 +166,11 @@ func (k MultiKey) Walk(path string, fn ValueWalkerFunc) error {
 	return walkValueMap(path, val, fn)
 }
 
+func (k MultiKey) Unmarshal(val interface{}) error {
+	buf, _ := json.Marshal(k)
+	return json.Unmarshal(buf, val)
+}
+
 type BigmapValue struct {
 	Key       MultiKey       `json:"key"`
 	KeyHash   tezos.ExprHash `json:"key_hash"`
@@ -211,6 +216,11 @@ func (v BigmapValue) Walk(path string, fn ValueWalkerFunc) error {
 	return walkValueMap(path, val, fn)
 }
 
+func (v BigmapValue) Unmarshal(val interface{}) error {
+	buf, _ := json.Marshal(v.Value)
+	return json.Unmarshal(buf, val)
+}
+
 type BigmapUpdate struct {
 	BigmapValue
 	Action        micheline.DiffAction `json:"action"`
@@ -245,6 +255,15 @@ type BigmapRow struct {
 	columns []string `json:"-"`
 }
 
+func (r BigmapRow) GetValue(typ micheline.Type) micheline.Value {
+	return micheline.NewValue(typ, r.Value)
+}
+
+func (r BigmapRow) GetKey(typ micheline.Type) micheline.Key {
+	k, _ := micheline.NewKey(typ, r.Key)
+	return k
+}
+
 type BigmapRowList struct {
 	Rows    []*BigmapRow
 	columns []string
@@ -264,7 +283,6 @@ func (l *BigmapRowList) UnmarshalJSON(data []byte) error {
 	if data[0] != '[' {
 		return fmt.Errorf("BigmapRowList: expected JSON array")
 	}
-	// log.Debugf("decode rights list from %d bytes", len(data))
 	array := make([]json.RawMessage, 0)
 	if err := json.Unmarshal(data, &array); err != nil {
 		return err
@@ -412,15 +430,6 @@ func (c *Client) QueryBigmap(ctx context.Context, filter FilterList, cols []stri
 func (c *Client) GetBigmap(ctx context.Context, id int64, params ContractParams) (*Bigmap, error) {
 	b := &Bigmap{}
 	u := params.AppendQuery(fmt.Sprintf("/explorer/bigmap/%d", id))
-	if err := c.get(ctx, u, nil, b); err != nil {
-		return nil, err
-	}
-	return b, nil
-}
-
-func (c *Client) GetBigmapType(ctx context.Context, id int64, params ContractParams) (*BigmapType, error) {
-	b := &BigmapType{}
-	u := params.AppendQuery(fmt.Sprintf("/explorer/bigmap/%d/type", id))
 	if err := c.get(ctx, u, nil, b); err != nil {
 		return nil, err
 	}
