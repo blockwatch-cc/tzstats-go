@@ -8,7 +8,7 @@ This SDK is based on [TzGo](https://github.com/blockwatch-cc/tzgo), our low-leve
 
 ### TzStats-Go Versioning
 
-As long as TzStats-Go is in beta status we will use major version 0.x. Once interfaces are stable we'll switch to 1.x. We'll use the minor version number to express compatibility with a Tezos protocol release, e.g. v0.9.0 supports all protocols up to Florence.
+As long as TzStats-Go is in beta status we will use major version 0.x. Once interfaces are stable we switch to 1.x. The minor version number expresses compatibility with a Tezos protocol release, e.g. v0.9.0 supports all protocols up to Florence.
 
 
 ### Installation
@@ -27,13 +27,13 @@ import (
 
 ### Initializing the TzStats SDK Client
 
-All functions are exported through a `Client` object you may is configured new client object with default configuration call:
+All functions are exported through a `Client` object. For convenience we have defined two default clients `tzstats.DefaultClient` for mainnet and `tzstats.IpfsClient`for our IPFS gateway. You may construct custom clients for different API URLs like so:
 
 ```go
 c, err := tzstats.NewClient("https://api.tzstats.com", nil)
 ```
 
-The default configuration should work just fine, but if you need special timeouts, proxy or TLS settings you may use a custom `http.Client`.
+The default configuration should work just fine, but if you need special timeouts, proxy or TLS settings you may use a custom `http.Client` as second argument.
 
 ```go
 import (
@@ -68,50 +68,259 @@ func main() {
 
 ### Reading a single Tezos Account
 
-*TODO*
+```go
+import (
+  "context"
+  "blockwatch.cc/tzstats-go"
+  "blockwatch.cc/tzgo/tezos"
+)
+
+// use default Mainnet client
+client := tzstats.DefaultClient
+ctx := context.Background()
+addr := tezos.MustParseAddress("tz3RDC3Jdn4j15J7bBHZd29EUee9gVB1CxD9")
+
+// get account data and embed metadata if available
+params := tzstats.NewAccountParams().WithMeta()
+a, err := client.GetAccount(ctx, addr, params)
+```
 
 ### Reading Smart Contract Storage
 
-*TODO*
+```go
+import (
+  "context"
+  "blockwatch.cc/tzgo"
+  "blockwatch.cc/tzstats-go"
+)
+
+// use default Mainnet client
+client := tzstats.DefaultClient
+ctx := context.Background()
+addr := tezos.MustParseAddress("KT1Puc9St8wdNoGtLiD2WXaHbWU7styaxYhD")
+
+// read storage from API
+params := tzstats.NewContractParams()
+raw, err := client.GetContractStorage(ctx, addr, params)
+
+// access individual properties with correct type
+tokenAddress, ok := raw.GetAddress("tokenAddress")
+tokenPool, ok := raw.GetBig("tokenPool")
+xtzPool, ok := raw.GetBig("xtzPool")
+```
 
 ### Listing Account Transactions
 
-*TODO*
+```go
+import (
+  "context"
+  "blockwatch.cc/tzstats-go"
+  "blockwatch.cc/tzgo/tezos"
+)
 
-### Cursoring through large result sets
+// use default Mainnet client
+client := tzstats.DefaultClient
+ctx := context.Background()
+addr := tezos.MustParseAddress("tz1irJKkXS2DBWkU1NnmFQx1c1L7pbGg4yhk")
 
-For efficiency reasons we limit each result list to at most 50,000 entries. List results contain `row_id` values that can be used as efficient offset pointers when fetching more data. An empty result list means there is no more data available right now.
+// list operations sent and received by this account
+params := tzstats.NewOpParams().WithLimit(100).WithOrder(tzstats.OrderDesc)
+ops, err := client.GetAccountOps(ctx, addr, params)
+```
+
+### Cursoring through results
+
+The SDK has a convenient way for fetching results longer than the default maximum of 500 entries by using the unique `row_id` as offset pointer. An empty result means there is no more data available right now. As the chain grows you can obtain fresh data by using the most recent row_id like shown below
 
 ```go
+import (
+  "context"
+  "blockwatch.cc/tzstats-go"
+  "blockwatch.cc/tzgo/tezos"
+)
+
+client := tzstats.DefaultClient
+ctx := context.Background()
+addr := tezos.MustParseAddress("tz1irJKkXS2DBWkU1NnmFQx1c1L7pbGg4yhk")
 params := tzstats.NewOpParams()
 
 for {
-	resp, err := tzstats.GetAccountOps(ctx, addr, params)
+	// fetch next batch from the explorer API
+	ops, err := client.GetAccountOps(ctx, addr, params)
 	// handle error if necessary
 
-	// handle data here
+	// stop when result is empty
+	if len(ops) == 0 {
+		break
+	}
+
+	// handle ops here
 
 	// prepare for next iteration
-	params = params.WithCursor(resp.Cursor())
+	params = params.WithCursor(ops[len(ops)-1].RowId)
 }
 
 ```
 
-### Listing bigmap keys with server-side data unwrap
-
-*TODO*
-
-### Listing many Bigmap keys with client-side data unwrap
-
-*TODO*
-
 ### Decoding smart contract data into Go types
 
-*TODO*
+```go
+import (
+  "context"
+  "blockwatch.cc/tzgo"
+  "blockwatch.cc/tzstats-go"
+)
+
+// use default Mainnet client
+client := tzstats.DefaultClient
+ctx := context.Background()
+addr := tezos.MustParseAddress("KT1Puc9St8wdNoGtLiD2WXaHbWU7styaxYhD")
+
+// read storage from API
+raw, err := client.GetContractStorage(ctx, addr, tzstats.NewContractParams())
+
+// decode into Go struct
+type DexterStorage struct {
+	Accounts                int64         `json:"accounts"`
+	SelfIsUpdatingTokenPool bool          `json:"selfIsUpdatingTokenPool"`
+	FreezeBaker             bool          `json:"freezeBaker"`
+	LqtTotal                *big.Int      `json:"lqtTotal"`
+	Manager                 tezos.Address `json:"manager"`
+	TokenAddress            tezos.Address `json:"tokenAddress"`
+	TokenPool               *big.Int      `json:"tokenPool"`
+	XtzPool                 *big.Int      `json:"xtzPool"`
+}
+
+dexterPool := &DexterStorage{}
+err := raw.Unmarshal(dexterPool)
+```
+
+### Listing bigmap key/value pairs with server-side data unfolding
+
+```go
+import (
+  "context"
+  "blockwatch.cc/tzstats-go"
+)
+
+type HicNFT struct {
+	TokenId   int               `json:"token_id,string"`
+	TokenInfo map[string]string `json:"token_info"`
+}
+
+client := tzstats.DefaultClient
+ctx := context.Background()
+params := tzstats.NewContractParams().
+	WithUnpack().
+	WithLimit(500)
+
+for {
+	// fetch next batch from the explorer API
+	nfts, err := client.GetBigmapValues(ctx, 514, params)
+	if err != nil {
+		return err
+	}
+
+	// stop when result is empty
+	if len(nfts) == 0 {
+		break
+	}
+	for _, v := range nfts {
+		var nft HicNFT
+		if err := v.Unmarshal(&nft); err != nil {
+			return err
+		}
+		// handle the value
+	}
+}
+```
 
 ### Building complex Table Queries
 
-*TODO*
+The [TzStats Table API](https://tzstats.com/docs/api#table-endpoints) is the fastest way to ingest and process on-chain data in bulk. The SDK defines typed query objects for most tables and allows you to add filter conditions and other configuration to these queries.
+
+```go
+import (
+  "context"
+  "blockwatch.cc/tzstats-go"
+)
+
+client := tzstats.DefaultClient
+ctx := context.Background()
+
+// create a new query object
+q := client.NewBigmapQuery()
+
+// add filters and configure the query to list all active keys
+q.WithFilter(tzstats.FilterModeEqual, "bigmap_id", 514).
+    WithFilter(tzstats.FilterModeEqual, "action", "update").
+    WithFilter(tzstats.FilterModeEqual, "is_deleted", false).
+    WithFilter(tzstats.FilterModeEqual, "is_replaced", false).
+    WithColumns("row_id", "key_hash", "key", "value").
+    WithLimit(1000).
+    WithOrder(tzstats.OrderDesc)
+
+// execute the query
+list, err := q.Run(ctx)
+
+// walk rows
+for _, row := range list.Rows {
+	// process data here
+}
+```
+
+### Listing many Bigmap keys with client-side data unfolding
+
+Extending the example above, we now use TzGo's Micheline features to unfold annotated bigmap data into native Go structs. For efficiency reasons the API only sends binary (hex-encoded) content for smart contract storage. The SDK transparently decodes this into native Micheline primitives for further processing as we see in the example below.
+
+```go
+import (
+  "context"
+  "blockwatch.cc/tzstats-go"
+)
+
+type HicNFT struct {
+	TokenId   int               `json:"token_id,string"`
+	TokenInfo map[string]string `json:"token_info"`
+}
+
+client := tzstats.DefaultClient
+ctx := context.Background()
+
+// fetch bigmap info with prim (required for key/value types)
+params := tzstats.NewContractParams().WithPrim()
+info, err := client.GetBigmapType(ctx, 514, params))
+keyType := info.MakeKeyType()
+valType := info.MakeValueType()
+
+// create a new query object
+q := client.NewBigmapQuery()
+
+// add filters and configure the query to list all active keys
+q.WithFilter(tzstats.FilterModeEqual, "bigmap_id", 514).
+    WithFilter(tzstats.FilterModeEqual, "action", "update").
+    WithFilter(tzstats.FilterModeEqual, "is_deleted", false).
+    WithFilter(tzstats.FilterModeEqual, "is_replaced", false).
+    WithColumns("row_id", "key_hash", "key", "value").
+    WithLimit(1000).
+    WithOrder(tzstats.OrderDesc)
+
+// execute the query
+list, err := q.Run(ctx)
+
+// walk rows
+for _, row := range list.Rows {
+    // join native value prims with types
+    key, val := row.GetKey(keyType), row.GetValue(valType)
+
+    // unpack into Go type
+    var nft HicNFT
+    err = val.Unmarshal(&nft)
+
+    // or access individual named values
+    i, ok := val.GetInt64("token_id")
+}
+```
 
 ### Gracefully handle rate-limits
 
