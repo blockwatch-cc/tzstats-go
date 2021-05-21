@@ -54,7 +54,7 @@ func (p Params) Url(actions ...string) string {
 	}
 	if len(actions) > 0 {
 		for _, v := range actions {
-			fields = append(fields, strings.TrimSuffix(strings.TrimPrefix(v, "/"), "/"))
+			fields = append(fields, strings.Trim(v, "/"))
 		}
 	}
 	if len(p.Query) == 0 {
@@ -85,7 +85,7 @@ func ParseParams(urlString string) (Params, error) {
 		u.Scheme = "https"
 	}
 	if u.Path != "" {
-		p.Prefix = u.Path
+		p.Prefix = strings.Trim(u.Path, "/")
 	}
 	u.RawQuery = ""
 	u.Fragment = ""
