@@ -212,7 +212,7 @@ func (c *Client) handleRequest(req *request) {
 	if resp.StatusCode >= 400 {
 		if resp.StatusCode == 429 {
 			// TODO: read rate limit header
-			wait := time.Second
+			wait := 5 * time.Second
 			err = newRateLimitError(wait, resp)
 		} else {
 			err = newHttpError(resp, respBytes, req.String())
