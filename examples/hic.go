@@ -16,6 +16,7 @@ const (
 var (
 	flags   = flag.NewFlagSet("hic", flag.ContinueOnError)
 	verbose bool
+	nofail  bool
 	index   string
 	ipfs    string
 	offset  int
@@ -24,7 +25,8 @@ var (
 func init() {
 	flags.Usage = func() {}
 	flags.BoolVar(&verbose, "v", false, "be verbose")
-	flags.StringVar(&index, "index", "https://api.staging.tzstats.com", "TzStats API URL")
+	flags.BoolVar(&nofail, "nofail", false, "no fail on IPFS error")
+	flags.StringVar(&index, "index", "https://api.tzstats.com", "TzStats API URL")
 	flags.StringVar(&ipfs, "ipfs", "https://ipfs.tzstats.com/ipfs", "IPFS gateway URL")
 	flags.IntVar(&offset, "offset", 0, "NFT List offset")
 }
@@ -94,7 +96,11 @@ func run() error {
 	// fetch all NFTs from bigmap 511
 	start := time.Now()
 	var count int = offset
-	params := tzstats.NewContractParams().WithUnpack().WithLimit(500).WithOffset(uint(offset))
+	params := tzstats.NewContractParams().
+		WithMeta().
+		WithUnpack().
+		WithLimit(500).
+		WithOffset(uint(offset))
 	for {
 		nfts, err := c.GetBigmapValues(ctx, HIC_NFT_BIGMAP, params)
 		if err != nil {
@@ -108,11 +114,22 @@ func run() error {
 			if err := v.Unmarshal(&nft); err != nil {
 				return fmt.Errorf("%v %#v", err, v.Value)
 			}
+		again:
 			meta, err := nft.ResolveMetadata(ctx, ipfsc)
 			if err != nil {
-				return err
+				if e, ok := tzstats.IsErrRateLimited(err); ok {
+					fmt.Printf("ERR 429 - waiting %s...\n", e.Deadline())
+					e.Wait(ctx)
+					goto again
+				}
+				if nofail {
+					fmt.Printf("ERR %s\n", err)
+					continue
+				} else {
+					return err
+				}
 			}
-			fmt.Printf("%-5d %-5d %-30s %s\n", count+i+1, nft.TokenId, meta.Name, meta.Description)
+			fmt.Printf("%-5d %-5d %s %-30s %s\n", count+i+1, nft.TokenId, v.Meta.UpdateTime.Format("2006-01-02"), meta.Name, meta.Description)
 		}
 		count += len(nfts)
 		params = params.WithOffset(uint(count))
