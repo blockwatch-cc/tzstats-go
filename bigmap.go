@@ -50,8 +50,11 @@ type BigmapMeta struct {
 	UpdateTime   time.Time       `json:"time"`
 	UpdateHeight int64           `json:"height"`
 	UpdateBlock  tezos.BlockHash `json:"block"`
+	UpdateOp     tezos.OpHash    `json:"op"`
 	IsReplaced   bool            `json:"is_replaced"`
 	IsRemoved    bool            `json:"is_removed"`
+	Sender       tezos.Address   `json:"sender"`
+	Source       tezos.Address   `json:"source"`
 }
 
 type BigmapKey struct {
