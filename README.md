@@ -130,7 +130,7 @@ ops, err := client.GetAccountOps(ctx, addr, params)
 
 ### Cursoring through results
 
-The SDK has a convenient way for fetching results longer than the default maximum of 500 entries by using the unique `row_id` as offset pointer. An empty result means there is no more data available right now. As the chain grows you can obtain fresh data by using the most recent row_id like shown below
+The SDK has a convenient way for fetching results longer than the default maximum of 500 entries. We use the more efficient cursor method here, but offset would work similar. An empty result means there is no more data available right now. As the chain grows you can obtain fresh data by using the most recent row_id like shown below
 
 ```go
 import (
@@ -159,7 +159,6 @@ for {
 	// prepare for next iteration
 	params = params.WithCursor(ops[len(ops)-1].RowId)
 }
-
 ```
 
 ### Decoding smart contract data into Go types
