@@ -143,7 +143,7 @@ type Supply struct {
 	Total               float64   `json:"total"`
 	Activated           float64   `json:"activated"`
 	Unclaimed           float64   `json:"unclaimed"`
-	Liquid              float64   `json:"liquid"`
+	Circulating         float64   `json:"circulating"`
 	Delegated           float64   `json:"delegated"`
 	Staking             float64   `json:"staking"`
 	Shielded            float64   `json:"shielded"`
