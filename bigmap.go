@@ -272,6 +272,10 @@ type BigmapRowList struct {
 	columns []string
 }
 
+func (l BigmapRowList) Len() int {
+	return len(l.Rows)
+}
+
 func (l BigmapRowList) Cursor() uint64 {
 	if len(l.Rows) == 0 {
 		return 0
@@ -359,18 +363,18 @@ func (b *BigmapRow) UnmarshalJSONBrief(data []byte) error {
 		case "bigmap_id":
 			br.BigMapId, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "action":
-			b.Action, err = micheline.ParseDiffAction(f.(string))
+			br.Action, err = micheline.ParseDiffAction(f.(string))
 		case "key_hash":
-			b.KeyHash, err = tezos.ParseExprHash(f.(string))
+			br.KeyHash, err = tezos.ParseExprHash(f.(string))
 		case "key":
 			var buf []byte
 			if buf, err = hex.DecodeString(f.(string)); err == nil {
-				err = b.Key.UnmarshalBinary(buf)
+				err = br.Key.UnmarshalBinary(buf)
 			}
 		case "value":
 			var buf []byte
 			if buf, err = hex.DecodeString(f.(string)); err == nil {
-				err = b.Value.UnmarshalBinary(buf)
+				err = br.Value.UnmarshalBinary(buf)
 			}
 		case "is_replaced":
 			br.IsReplaced, err = strconv.ParseBool(f.(json.Number).String())
