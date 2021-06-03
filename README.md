@@ -288,7 +288,7 @@ ctx := context.Background()
 
 // fetch bigmap info with prim (required for key/value types)
 params := tzstats.NewContractParams().WithPrim()
-info, err := client.GetBigmapType(ctx, 514, params))
+info, err := client.GetBigmap(ctx, 514, params))
 keyType := info.MakeKeyType()
 valType := info.MakeValueType()
 
