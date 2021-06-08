@@ -77,6 +77,37 @@ type Op struct {
 	columns []string `json:"-"`
 }
 
+func (o *Op) Content() []*Op {
+	list := []*Op{o}
+	if len(o.Batch) == 0 && len(o.Internal) == 0 {
+		return list
+	}
+	if o.IsBatch {
+		list = list[:0]
+		for _, v := range o.Batch {
+			list = append(list, v)
+			if len(v.Internal) > 0 {
+				list = append(list, v.Internal...)
+			}
+		}
+	}
+	if len(o.Internal) > 0 {
+		list = append(list, o.Internal...)
+	}
+	return list
+}
+
+func (o *Op) Cursor() uint64 {
+	op := o
+	if l := len(op.Batch); l > 0 {
+		op = op.Batch[l-1]
+	}
+	if l := len(op.Internal); l > 0 {
+		op = op.Internal[l-1]
+	}
+	return op.RowId
+}
+
 type OpList struct {
 	Rows    []*Op
 	columns []string
@@ -278,7 +309,7 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 								ValuePrim: v.Value,   // update only
 								Meta: BigmapMeta{
 									Contract:     op.Receiver,
-									BigMapId:     v.Id,
+									BigmapId:     v.Id,
 									UpdateTime:   op.Timestamp,
 									UpdateHeight: op.Height,
 								},
