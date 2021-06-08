@@ -89,7 +89,7 @@ func (r FutureResult) Receive(ctx context.Context) error {
 			return herr
 		} else if rerr, ok := IsErrRateLimited(err); ok {
 			return rerr
-		} else {
+		} else if resp != nil {
 			buf := resp.result
 			if resp != nil && buf != nil && resp.status > 299 {
 				errs := ApiErrors{}
