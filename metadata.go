@@ -278,7 +278,7 @@ type Tz21DataRate struct {
 }
 
 type UpdatedMetadata struct {
-	Hash   tezos.BlockHash `json:"block"`
+	Hash   tezos.BlockHash `json:"hash"`
 	Height int64           `json:"height"`
 	Time   time.Time       `json:"time"`
 }
