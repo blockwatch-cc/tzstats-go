@@ -20,7 +20,7 @@ import (
 
 type Bigmap struct {
 	Contract        tezos.Address     `json:"contract"`
-	BigMapId        int64             `json:"bigmap_id"`
+	BigmapId        int64             `json:"bigmap_id"`
 	NUpdates        int64             `json:"n_updates"`
 	NKeys           int64             `json:"n_keys"`
 	AllocatedHeight int64             `json:"alloc_height"`
@@ -46,7 +46,7 @@ func (b Bigmap) MakeValueType() micheline.Type {
 
 type BigmapMeta struct {
 	Contract     tezos.Address   `json:"contract"`
-	BigMapId     int64           `json:"bigmap_id"`
+	BigmapId     int64           `json:"bigmap_id"`
 	UpdateTime   time.Time       `json:"time"`
 	UpdateHeight int64           `json:"height"`
 	UpdateBlock  tezos.BlockHash `json:"block"`
@@ -231,6 +231,7 @@ type BigmapUpdate struct {
 	ValueType     micheline.Typedef    `json:"value_type"`
 	KeyTypePrim   micheline.Prim       `json:"key_type_prim"`
 	ValueTypePrim micheline.Prim       `json:"value_type_prim"`
+	BigmapId      int64                `json:"bigmap_id"`
 	SourceId      int64                `json:"source_big_map"`
 	DestId        int64                `json:"destination_big_map"`
 }
@@ -246,7 +247,7 @@ type BigmapRow struct {
 	Op         tezos.OpHash         `json:"op"`
 	Height     int64                `json:"height"`
 	Timestamp  time.Time            `json:"time"`
-	BigMapId   int64                `json:"bigmap_id"`
+	BigmapId   int64                `json:"bigmap_id"`
 	Action     micheline.DiffAction `json:"action"`
 	KeyHash    tezos.ExprHash       `json:"key_hash,omitempty"`
 	Key        micheline.Prim       `json:"key,omitempty"`
@@ -361,7 +362,7 @@ func (b *BigmapRow) UnmarshalJSONBrief(data []byte) error {
 				br.Timestamp = time.Unix(0, ts*1000000).UTC()
 			}
 		case "bigmap_id":
-			br.BigMapId, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+			br.BigmapId, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "action":
 			br.Action, err = micheline.ParseDiffAction(f.(string))
 		case "key_hash":
@@ -470,13 +471,13 @@ func (c *Client) GetBigmapUpdates(ctx context.Context, id int64, params Contract
 	return upd, nil
 }
 
-func (c *Client) GetBigmapKey(ctx context.Context, id int64, key string, params ContractParams) (*BigmapKey, error) {
-	k := &BigmapKey{}
+func (c *Client) GetBigmapValue(ctx context.Context, id int64, key string, params ContractParams) (*BigmapValue, error) {
+	v := &BigmapValue{}
 	u := params.AppendQuery(fmt.Sprintf("/explorer/bigmap/%d/%s", id, key))
-	if err := c.get(ctx, u, nil, k); err != nil {
+	if err := c.get(ctx, u, nil, v); err != nil {
 		return nil, err
 	}
-	return k, nil
+	return v, nil
 }
 
 func (c *Client) GetBigmapKeyUpdates(ctx context.Context, id int64, key string, params ContractParams) ([]BigmapUpdate, error) {
