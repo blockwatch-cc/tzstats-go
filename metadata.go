@@ -45,6 +45,22 @@ type Metadata struct {
 	Extra map[string]interface{} `json:"-"`
 }
 
+func (m Metadata) IsEmpty() bool {
+	return m.Alias == nil &&
+		m.Baker == nil &&
+		m.Payout == nil &&
+		m.Asset == nil &&
+		m.Location == nil &&
+		m.Domain == nil &&
+		m.Media == nil &&
+		m.Rights == nil &&
+		m.Social == nil &&
+		m.Tz16 == nil &&
+		m.Tz21 == nil &&
+		m.Updated == nil &&
+		len(m.Extra) == 0
+}
+
 func (m Metadata) MarshalJSON() ([]byte, error) {
 	type xMetadata Metadata
 	buf, err := json.Marshal(xMetadata(m))
