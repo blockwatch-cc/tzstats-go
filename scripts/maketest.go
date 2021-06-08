@@ -430,10 +430,10 @@ func fetchOperationData(ctx context.Context, c *tzstats.Client, net, hash string
 				continue
 			}
 			// reverse-lookup bigmap position
-			idx := sort.Search(len(bmids), func(i int) bool { return bmids[i] >= bmd.Meta.BigMapId })
+			idx := sort.Search(len(bmids), func(i int) bool { return bmids[i] >= bmd.Meta.BigmapId })
 
 			tc := Testcase{
-				Name:     fmt.Sprintf("%s/%s/%d/%d/%d-%d", net, hash, v.OpC, v.OpI, i, bmd.Meta.BigMapId),
+				Name:     fmt.Sprintf("%s/%s/%d/%d/%d-%d", net, hash, v.OpC, v.OpI, i, bmd.Meta.BigmapId),
 				NoUnpack: nounpack,
 			}
 			bmtype, _ := script.Script.Code.Storage.FindOpCodes(micheline.T_BIG_MAP)
