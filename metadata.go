@@ -39,6 +39,7 @@ type Metadata struct {
 	Social   *SocialMetadata   `json:"social,omitempty"`
 	Tz16     *Tz16Metadata     `json:"tz16,omitempty"`
 	Tz21     *Tz21Metadata     `json:"tz21,omitempty"`
+	Updated  *UpdatedMetadata  `json:"updated,omitempty"`
 
 	// private extensions
 	Extra map[string]interface{} `json:"-"`
@@ -84,7 +85,8 @@ func (m *Metadata) UnmarshalJSON(buf []byte) error {
 			"rights",
 			"social",
 			"tz16",
-			"tz21":
+			"tz21",
+			"updated":
 			continue
 		default:
 			if m.Extra == nil {
@@ -257,6 +259,12 @@ type Tz21Dimension struct {
 type Tz21DataRate struct {
 	Value string `json:"value"`
 	Unit  string `json:"unit"`
+}
+
+type UpdatedMetadata struct {
+	Hash   tezos.BlockHash `json:"block"`
+	Height int64           `json:"height"`
+	Time   time.Time       `json:"time"`
 }
 
 func (c *Client) ListMetadata(ctx context.Context) ([]Metadata, error) {
