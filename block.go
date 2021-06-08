@@ -51,15 +51,15 @@ type Block struct {
 	NOrigination        int                    `json:"n_origination"`
 	NProposal           int                    `json:"n_proposal"`
 	NBallot             int                    `json:"n_ballot"`
-	Volume              int64                  `json:"volume"`
-	Fee                 int64                  `json:"fee"`
-	Reward              int64                  `json:"reward"`
-	Deposit             int64                  `json:"deposit"`
-	UnfrozenFees        int64                  `json:"unfrozen_fees"`
-	UnfrozenRewards     int64                  `json:"unfrozen_rewards"`
-	UnfrozenDeposits    int64                  `json:"unfrozen_deposits"`
-	ActivatedSupply     int64                  `json:"activated_supply"`
-	BurnedSupply        int64                  `json:"burned_supply"`
+	Volume              float64                `json:"volume"`
+	Fee                 float64                `json:"fee"`
+	Reward              float64                `json:"reward"`
+	Deposit             float64                `json:"deposit"`
+	UnfrozenFees        float64                `json:"unfrozen_fees"`
+	UnfrozenRewards     float64                `json:"unfrozen_rewards"`
+	UnfrozenDeposits    float64                `json:"unfrozen_deposits"`
+	ActivatedSupply     float64                `json:"activated_supply"`
+	BurnedSupply        float64                `json:"burned_supply"`
 	SeenAccounts        int                    `json:"n_accounts"`
 	NewAccounts         int                    `json:"n_new_accounts"`
 	NewImplicitAccounts int                    `json:"n_new_implicit"`
@@ -77,6 +77,51 @@ type Block struct {
 	Rights              []Right                `json:"rights"`
 	Ops                 []*Op                  `json:"ops"`
 	columns             []string               `json:"-"`
+}
+
+type BlockId struct {
+	Height int64
+	Hash   tezos.BlockHash
+	Time   time.Time
+}
+
+func (i BlockId) IsNextBlock(b *Block) bool {
+	if b == nil {
+		return false
+	}
+	if b.Height != i.Height+1 {
+		return false
+	}
+	if !b.ParentHash.Equal(i.Hash) {
+		return false
+	}
+	return true
+}
+
+func (i BlockId) IsSameBlock(b *Block) bool {
+	if b == nil {
+		return false
+	}
+	if b.Height != i.Height {
+		return false
+	}
+	if !b.Hash.Equal(i.Hash) {
+		return false
+	}
+	return true
+}
+
+func (b *Block) BlockId() BlockId {
+	return BlockId{
+		Height: b.Height,
+		Hash:   b.Hash.Clone(),
+		Time:   b.Timestamp,
+	}
+}
+
+func (b *Block) WithColumns(cols ...string) *Block {
+	b.columns = cols
+	return b
 }
 
 type BlockList struct {
@@ -221,23 +266,23 @@ func (b *Block) UnmarshalJSONBrief(data []byte) error {
 		case "n_ballot":
 			block.NBallot, err = strconv.Atoi(f.(json.Number).String())
 		case "volume":
-			block.Volume, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+			block.Volume, err = strconv.ParseFloat(f.(json.Number).String(), 4)
 		case "fee":
-			block.Fee, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+			block.Fee, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "reward":
-			block.Reward, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+			block.Reward, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "deposit":
-			block.Deposit, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+			block.Deposit, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "unfrozen_fees":
-			block.UnfrozenFees, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+			block.UnfrozenFees, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "unfrozen_rewards":
-			block.UnfrozenRewards, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+			block.UnfrozenRewards, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "unfrozen_deposits":
-			block.UnfrozenDeposits, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+			block.UnfrozenDeposits, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "activated_supply":
-			block.ActivatedSupply, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+			block.ActivatedSupply, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "burned_supply":
-			block.BurnedSupply, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+			block.BurnedSupply, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "n_accounts":
 			block.SeenAccounts, err = strconv.Atoi(f.(json.Number).String())
 		case "n_new_accounts":
