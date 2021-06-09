@@ -311,6 +311,8 @@ func (b *Block) UnmarshalJSONBrief(data []byte) error {
 			block.PctAccountReuse, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "baker":
 			block.Baker, err = tezos.ParseAddress(f.(string))
+		case "predecessor":
+			block.ParentHash, err = tezos.ParseBlockHash(f.(string))
 		}
 		if err != nil {
 			return err
