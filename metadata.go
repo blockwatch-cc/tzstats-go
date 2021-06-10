@@ -45,6 +45,14 @@ type Metadata struct {
 	Extra map[string]interface{} `json:"-"`
 }
 
+func (m Metadata) ID() string {
+	id := m.Address.String()
+	if m.AssetId != nil {
+		id += "/" + strconv.FormatInt(*m.AssetId, 10)
+	}
+	return id
+}
+
 func (m Metadata) IsEmpty() bool {
 	return m.Alias == nil &&
 		m.Baker == nil &&
@@ -66,6 +74,47 @@ func (m Metadata) Clone() Metadata {
 	var clone Metadata
 	_ = json.Unmarshal(buf, &clone)
 	return clone
+}
+
+func (m Metadata) Merge(d Metadata) Metadata {
+	md := m
+	if d.Alias != nil {
+		md.Alias = d.Alias
+	}
+	if d.Baker != nil {
+		md.Baker = d.Baker
+	}
+	if d.Payout != nil {
+		md.Payout = d.Payout
+	}
+	if d.Asset != nil {
+		md.Asset = d.Asset
+	}
+	if d.Location != nil {
+		md.Location = d.Location
+	}
+	if d.Domain != nil {
+		md.Domain = d.Domain
+	}
+	if d.Media != nil {
+		md.Media = d.Media
+	}
+	if d.Rights != nil {
+		md.Rights = d.Rights
+	}
+	if d.Social != nil {
+		md.Social = d.Social
+	}
+	if d.Tz16 != nil {
+		md.Tz16 = d.Tz16
+	}
+	if d.Tz21 != nil {
+		md.Tz21 = d.Tz21
+	}
+	if d.Updated != nil {
+		md.Updated = d.Updated
+	}
+	return md
 }
 
 func (m Metadata) MarshalJSON() ([]byte, error) {
