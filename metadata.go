@@ -61,6 +61,13 @@ func (m Metadata) IsEmpty() bool {
 		len(m.Extra) == 0
 }
 
+func (m Metadata) Clone() Metadata {
+	buf, _ := json.Marshal(m)
+	var clone Metadata
+	_ = json.Unmarshal(buf, &clone)
+	return clone
+}
+
 func (m Metadata) MarshalJSON() ([]byte, error) {
 	type xMetadata Metadata
 	buf, err := json.Marshal(xMetadata(m))
