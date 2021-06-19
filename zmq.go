@@ -40,11 +40,11 @@ func (m *ZmqMessage) GetField(name string) (string, bool) {
 	}
 }
 
-func (m *ZmqMessage) DecodeOpHash(msg []byte) (tezos.OpHash, error) {
+func (m *ZmqMessage) DecodeOpHash() (tezos.OpHash, error) {
 	return tezos.ParseOpHash(string(m.body))
 }
 
-func (m *ZmqMessage) DecodeBlockHash(msg []byte) (tezos.BlockHash, error) {
+func (m *ZmqMessage) DecodeBlockHash() (tezos.BlockHash, error) {
 	return tezos.ParseBlockHash(string(m.body))
 }
 
