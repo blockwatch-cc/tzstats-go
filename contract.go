@@ -40,7 +40,7 @@ type Contract struct {
 	Features      []string            `json:"features"`
 	Interfaces    []string            `json:"interfaces"`
 	CallStats     map[string]int      `json:"call_stats"`
-	BigMaps       map[string]int64    `json:"bigmaps"`
+	Bigmaps       map[string]int64    `json:"bigmaps"`
 	NOps          int                 `json:"n_ops"`
 	NOpsFailed    int                 `json:"n_ops_failed"`
 	Metadata      map[string]Metadata `json:"metadata"`
@@ -217,17 +217,35 @@ type ContractParameters struct {
 type ContractScript struct {
 	StorageType micheline.Typedef     `json:"storage_type"`
 	Entrypoints micheline.Entrypoints `json:"entrypoints"`
-	Script      *micheline.Script     `json:"script"`
+	Bigmaps     map[string]int64      `json:"bigmaps,omitempty"`
+	Script      *micheline.Script     `json:"script,omitempty"`
+}
+
+func (s ContractScript) Types() (store micheline.Type, eps micheline.Entrypoints, bigmaps map[int64]micheline.Type) {
+	store = s.Script.StorageType()
+	eps, _ = s.Script.Entrypoints(true)
+	bigmaps = make(map[int64]micheline.Type)
+	if named := s.Script.BigmapTypesByName(); len(named) > 0 {
+		for name, id := range s.Bigmaps {
+			typ, ok := named[name]
+			if !ok {
+				continue
+			}
+			bigmaps[id] = typ
+		}
+	}
+	return
 }
 
 type ContractStorage struct {
-	Meta ContractMeta `json:"meta"`
+	Meta    *ContractMeta    `json:"meta,omitempty"`
+	Bigmaps map[string]int64 `json:"bigmaps,omitempty"`
 	ContractValue
 }
 
 type ContractValue struct {
-	Value interface{}    `json:"value"`
-	Prim  micheline.Prim `json:"prim"`
+	Value interface{}     `json:"value"`
+	Prim  *micheline.Prim `json:"prim,omitempty"`
 }
 
 func (v ContractValue) IsPrim() bool {
@@ -244,7 +262,7 @@ func (v ContractValue) IsPrim() bool {
 
 func (v ContractValue) AsPrim() (micheline.Prim, bool) {
 	if v.Prim.IsValid() {
-		return v.Prim, true
+		return *v.Prim, true
 	}
 
 	if v.IsPrim() {

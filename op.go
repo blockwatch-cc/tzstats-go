@@ -55,26 +55,32 @@ type Op struct {
 	IsInternal   bool                `json:"is_internal"`
 	IsImplicit   bool                `json:"is_implicit"`
 	HasData      bool                `json:"has_data"`
-	Data         json.RawMessage     `json:"data"`
-	Parameters   *ContractParameters `json:"parameters"`
-	Storage      *ContractStorage    `json:"storage"`
-	BigmapDiff   []BigmapUpdate      `json:"big_map_diff"`
-	Errors       json.RawMessage     `json:"errors"`
+	Data         json.RawMessage     `json:"data,omitempty"`
+	Parameters   *ContractParameters `json:"parameters,omitempty"`
+	Storage      *ContractStorage    `json:"storage,omitempty"`
+	BigmapDiff   []BigmapUpdate      `json:"big_map_diff,omitempty"`
+	Errors       json.RawMessage     `json:"errors,omitempty"`
 	TDD          float64             `json:"days_destroyed"`
 	BranchHeight int64               `json:"branch_height"`
 	BranchDepth  int64               `json:"branch_depth"`
 	BranchHash   tezos.BlockHash     `json:"branch"`
 	Entrypoint   int                 `json:"entrypoint_id"`
-	IsOrphan     bool                `json:"is_orphan"`
-	IsBatch      bool                `json:"is_batch"`
-	IsSapling    bool                `json:"is_sapling"`
-	BatchVolume  float64             `json:"batch_volume"`
-	Metadata     map[string]Metadata `json:"metadata"`
-	Batch        []*Op               `json:"batch"`
-	Internal     []*Op               `json:"internal"`
-	NOps         int                 `json:"n_ops"`
+	IsOrphan     bool                `json:"is_orphan,omitempty"`
+	IsBatch      bool                `json:"is_batch,omitempty"`
+	IsSapling    bool                `json:"is_sapling,omitempty"`
+	BatchVolume  float64             `json:"batch_volume,omitempty"`
+	Metadata     map[string]Metadata `json:"metadata,omitempty"`
+	Batch        []*Op               `json:"batch,omitempty"`
+	Internal     []*Op               `json:"internal,omitempty"`
+	NOps         int                 `json:"n_ops,omitempty"`
 
-	columns []string `json:"-"`
+	columns  []string                 // optional, for decoding bulk arrays
+	typs     *ContractScript          // optional, for decoding params & storage
+	store    micheline.Type           // optional, may be decoded from script
+	eps      micheline.Entrypoints    // optional, may be decoded from script
+	bigmaps  map[int64]micheline.Type // optional, may be decoded from script
+	withPrim bool
+	withMeta bool
 }
 
 func (o *Op) Content() []*Op {
@@ -108,6 +114,37 @@ func (o *Op) Cursor() uint64 {
 	return op.RowId
 }
 
+func (o *Op) WithColumns(cols ...string) *Op {
+	o.columns = cols
+	return o
+}
+
+func (o *Op) WithScript(s *ContractScript) *Op {
+	if s != nil {
+		o.store, o.eps, o.bigmaps = s.Types()
+	} else {
+		o.store, o.eps, o.bigmaps = micheline.Type{}, nil, nil
+	}
+	return o
+}
+
+func (o *Op) WithTypes(store micheline.Type, eps micheline.Entrypoints, b map[int64]micheline.Type) *Op {
+	o.store = store
+	o.eps = eps
+	o.bigmaps = b
+	return o
+}
+
+func (o *Op) WithPrim(b bool) *Op {
+	o.withPrim = b
+	return o
+}
+
+func (o *Op) WithMeta(b bool) *Op {
+	o.withMeta = b
+	return o
+}
+
 type OpList struct {
 	Rows    []*Op
 	columns []string
@@ -131,7 +168,6 @@ func (l *OpList) UnmarshalJSON(data []byte) error {
 	if data[0] != '[' {
 		return fmt.Errorf("OpList: expected JSON array")
 	}
-	log.Infof("decode op list from %d bytes", len(data))
 	array := make([]json.RawMessage, 0)
 	if err := json.Unmarshal(data, &array); err != nil {
 		return err
@@ -172,6 +208,8 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 	if err != nil {
 		return err
 	}
+	if o.typs != nil && o.bigmaps == nil {
+	}
 	for i, v := range o.columns {
 		f := unpacked[i]
 		if f == nil {
@@ -186,6 +224,8 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 			if err == nil {
 				op.Timestamp = time.Unix(0, ts*1000000).UTC()
 			}
+		case "block":
+			op.BlockHash, err = tezos.ParseBlockHash(f.(string))
 		case "height":
 			op.Height, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "cycle":
@@ -255,7 +295,7 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 		case "has_data":
 			op.HasData, err = strconv.ParseBool(f.(json.Number).String())
 		case "data":
-			op.Data = json.RawMessage(f.(string))
+			op.Data, err = json.Marshal(f)
 		case "parameters":
 			var buf []byte
 			if buf, err = hex.DecodeString(f.(string)); err == nil {
@@ -264,9 +304,18 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 				if err == nil {
 					op.Parameters = &ContractParameters{
 						Entrypoint: params.Entrypoint,
-						ContractValue: ContractValue{
-							Prim: params.Value,
-						},
+					}
+					if o.withPrim {
+						op.Parameters.ContractValue.Prim = &params.Value
+					}
+					if o.eps != nil {
+						if ep, ok := o.eps[params.Entrypoint]; ok {
+							op.Parameters.Call = ep.Call
+							op.Parameters.Branch = ep.Branch
+							op.Parameters.Id = ep.Id
+							val := micheline.NewValue(ep.Type(), params.Value)
+							op.Parameters.ContractValue.Value, err = val.Map()
+						}
 					}
 				}
 			}
@@ -276,10 +325,13 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 				prim := micheline.Prim{}
 				err = prim.UnmarshalBinary(buf)
 				if err == nil {
-					op.Storage = &ContractStorage{
-						ContractValue: ContractValue{
-							Prim: prim,
-						},
+					op.Storage = &ContractStorage{}
+					if o.withPrim {
+						op.Storage.ContractValue.Prim = &prim
+					}
+					if o.store.IsValid() {
+						val := micheline.NewValue(o.store, prim)
+						op.Storage.ContractValue.Value, err = val.Map()
 					}
 				}
 			}
@@ -291,35 +343,67 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 				if err == nil {
 					op.BigmapDiff = make([]BigmapUpdate, len(bmd))
 					for i, v := range bmd {
-						keybuf, _ := v.GetKey(v.Key.BuildType()).MarshalJSON()
+						var ktyp, vtyp micheline.Type
+						if typ, ok := o.bigmaps[v.Id]; ok {
+							ktyp, vtyp = typ.Left(), typ.Right()
+						} else {
+							ktyp = v.Key.BuildType()
+						}
+						keybuf, _ := v.GetKey(ktyp).MarshalJSON()
 						mk := MultiKey{}
 						_ = mk.UnmarshalJSON(keybuf)
 						op.BigmapDiff[i] = BigmapUpdate{
-							Action:        v.Action,
-							KeyType:       micheline.Type{Prim: v.KeyType}.Typedef("_key"),     // alloc/copy only
-							ValueType:     micheline.Type{Prim: v.ValueType}.Typedef("_value"), // alloc/copy only
-							KeyTypePrim:   v.KeyType,                                           // alloc/copy only
-							ValueTypePrim: v.ValueType,                                         // alloc/copy only
-							SourceId:      v.SourceId,                                          // alloc/copy only
-							DestId:        v.DestId,                                            // alloc/copy only
-							BigmapValue: BigmapValue{
-								Key:       mk,        // update/remove only
-								KeyHash:   v.KeyHash, // update/remove only
-								KeyPrim:   v.Key,     // update/remove only
-								ValuePrim: v.Value,   // update only
-								Meta: BigmapMeta{
+							Action:   v.Action,
+							BigmapId: v.Id,
+						}
+						switch v.Action {
+						case micheline.DiffActionAlloc, micheline.DiffActionCopy:
+							// alloc/copy only
+							op.BigmapDiff[i].KeyType = micheline.Type{Prim: v.KeyType}.TypedefPtr("@key")
+							op.BigmapDiff[i].ValueType = micheline.Type{Prim: v.ValueType}.TypedefPtr("@value")
+							op.BigmapDiff[i].SourceId = v.SourceId
+							op.BigmapDiff[i].DestId = v.DestId
+							if op.withPrim {
+								op.BigmapDiff[i].KeyTypePrim = &v.KeyType
+								op.BigmapDiff[i].ValueTypePrim = &v.ValueType
+							}
+						default:
+							// update/remove only
+							op.BigmapDiff[i].BigmapValue = BigmapValue{
+								Key:     mk,
+								KeyHash: v.KeyHash,
+							}
+							if o.withMeta {
+								op.BigmapDiff[i].BigmapValue.Meta = &BigmapMeta{
 									Contract:     op.Receiver,
 									BigmapId:     v.Id,
 									UpdateTime:   op.Timestamp,
 									UpdateHeight: op.Height,
-								},
-							},
+								}
+							}
+							if o.withPrim {
+								op.BigmapDiff[i].BigmapValue.KeyPrim = &v.Key
+							}
+							if v.Action == micheline.DiffActionUpdate {
+								// update only
+								if o.withPrim {
+									op.BigmapDiff[i].BigmapValue.ValuePrim = &v.Value
+								}
+								// unpack value if type is known
+								if vtyp.IsValid() {
+									val := micheline.NewValue(vtyp, v.Value)
+									op.BigmapDiff[i].BigmapValue.Value, err = val.Map()
+								}
+							}
+						}
+						if err != nil {
+							break
 						}
 					}
 				}
 			}
 		case "errors":
-			op.Errors, _ = json.Marshal(f)
+			op.Errors, err = json.Marshal(f)
 		case "days_destroyed":
 			op.TDD, err = f.(json.Number).Float64()
 		case "branch_height":

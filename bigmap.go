@@ -58,10 +58,10 @@ type BigmapMeta struct {
 }
 
 type BigmapKey struct {
-	Key     MultiKey       `json:"key"`
-	KeyHash tezos.ExprHash `json:"key_hash"`
-	Meta    BigmapMeta     `json:"meta"`
-	Prim    micheline.Prim `json:"prim"`
+	Key     MultiKey        `json:"key"`
+	KeyHash tezos.ExprHash  `json:"key_hash"`
+	Meta    *BigmapMeta     `json:"meta"`
+	Prim    *micheline.Prim `json:"prim"`
 }
 
 type MultiKey struct {
@@ -175,12 +175,12 @@ func (k MultiKey) Unmarshal(val interface{}) error {
 }
 
 type BigmapValue struct {
-	Key       MultiKey       `json:"key"`
-	KeyHash   tezos.ExprHash `json:"key_hash"`
-	Meta      BigmapMeta     `json:"meta"`
-	Value     interface{}    `json:"value"`
-	KeyPrim   micheline.Prim `json:"key_prim"`
-	ValuePrim micheline.Prim `json:"value_prim"`
+	Key       MultiKey        `json:"key"`
+	KeyHash   tezos.ExprHash  `json:"key_hash"`
+	Meta      *BigmapMeta     `json:"meta,omitempty"`
+	Value     interface{}     `json:"value,omitempty"`
+	KeyPrim   *micheline.Prim `json:"key_prim,omitempty"`
+	ValuePrim *micheline.Prim `json:"value_prim,omitempty"`
 }
 
 func (v BigmapValue) GetString(path string) (string, bool) {
@@ -227,13 +227,13 @@ func (v BigmapValue) Unmarshal(val interface{}) error {
 type BigmapUpdate struct {
 	BigmapValue
 	Action        micheline.DiffAction `json:"action"`
-	KeyType       micheline.Typedef    `json:"key_type"`
-	ValueType     micheline.Typedef    `json:"value_type"`
-	KeyTypePrim   micheline.Prim       `json:"key_type_prim"`
-	ValueTypePrim micheline.Prim       `json:"value_type_prim"`
+	KeyType       *micheline.Typedef   `json:"key_type,omitempty"`
+	ValueType     *micheline.Typedef   `json:"value_type,omitempty"`
+	KeyTypePrim   *micheline.Prim      `json:"key_type_prim,omitempty"`
+	ValueTypePrim *micheline.Prim      `json:"value_type_prim,omitempty"`
 	BigmapId      int64                `json:"bigmap_id"`
-	SourceId      int64                `json:"source_big_map"`
-	DestId        int64                `json:"destination_big_map"`
+	SourceId      int64                `json:"source_big_map,omitempty"`
+	DestId        int64                `json:"destination_big_map,omitempty"`
 }
 
 type BigmapRow struct {
