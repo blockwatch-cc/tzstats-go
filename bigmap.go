@@ -70,6 +70,16 @@ type MultiKey struct {
 	single string
 }
 
+func DecodeMultiKey(key micheline.Key) (MultiKey, error) {
+	mk := MultiKey{}
+	buf, err := json.Marshal(key)
+	if err != nil {
+		return mk, err
+	}
+	err = json.Unmarshal(buf, &mk)
+	return mk, err
+}
+
 func (k MultiKey) Len() int {
 	if len(k.single) > 0 {
 		return 1
