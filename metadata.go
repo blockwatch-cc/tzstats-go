@@ -210,6 +210,11 @@ type LocationMetadata struct {
 }
 
 type DomainMetadata struct {
+	Name    string         `json:"name"`
+	Records []DomainRecord `json:"records,omitempty"`
+}
+
+type DomainRecord struct {
 	Address tezos.Address     `json:"address"`
 	Name    string            `json:"name"`
 	Owner   tezos.Address     `json:"owner"`

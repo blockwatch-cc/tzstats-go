@@ -298,7 +298,7 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 			op.Data, err = json.Marshal(f)
 		case "parameters":
 			var buf []byte
-			if buf, err = hex.DecodeString(f.(string)); err == nil {
+			if buf, err = hex.DecodeString(f.(string)); err == nil && len(buf) > 0 {
 				params := &micheline.Parameters{}
 				err = params.UnmarshalBinary(buf)
 				if err == nil {
@@ -321,7 +321,7 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 			}
 		case "storage":
 			var buf []byte
-			if buf, err = hex.DecodeString(f.(string)); err == nil {
+			if buf, err = hex.DecodeString(f.(string)); err == nil && len(buf) > 0 {
 				prim := micheline.Prim{}
 				err = prim.UnmarshalBinary(buf)
 				if err == nil {
@@ -337,7 +337,7 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 			}
 		case "big_map_diff":
 			var buf []byte
-			if buf, err = hex.DecodeString(f.(string)); err == nil {
+			if buf, err = hex.DecodeString(f.(string)); err == nil && len(buf) > 0 {
 				bmd := make(micheline.BigmapDiff, 0)
 				err = bmd.UnmarshalBinary(buf)
 				if err == nil {

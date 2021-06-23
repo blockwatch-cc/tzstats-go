@@ -379,12 +379,12 @@ func (b *BigmapRow) UnmarshalJSONBrief(data []byte) error {
 			br.KeyHash, err = tezos.ParseExprHash(f.(string))
 		case "key":
 			var buf []byte
-			if buf, err = hex.DecodeString(f.(string)); err == nil {
+			if buf, err = hex.DecodeString(f.(string)); err == nil && len(buf) > 0 {
 				err = br.Key.UnmarshalBinary(buf)
 			}
 		case "value":
 			var buf []byte
-			if buf, err = hex.DecodeString(f.(string)); err == nil {
+			if buf, err = hex.DecodeString(f.(string)); err == nil && len(buf) > 0 {
 				err = br.Value.UnmarshalBinary(buf)
 			}
 		case "is_replaced":
