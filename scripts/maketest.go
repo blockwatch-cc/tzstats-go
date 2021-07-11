@@ -215,7 +215,7 @@ func fetchContractData(ctx context.Context, c *tzstats.Client, net, hash string)
 		return err
 	}
 	bmids := make([]int64, 0)
-	for _, id := range contract.BigMaps {
+	for _, id := range contract.Bigmaps {
 		bmids = append(bmids, id)
 	}
 	sort.Slice(bmids, func(i, j int) bool { return bmids[i] < bmids[j] })
@@ -376,7 +376,7 @@ func fetchOperationData(ctx context.Context, c *tzstats.Client, net, hash string
 			return err
 		}
 		bmids := make([]int64, 0)
-		for _, id := range contract.BigMaps {
+		for _, id := range contract.Bigmaps {
 			bmids = append(bmids, id)
 		}
 		sort.Slice(bmids, func(i, j int) bool { return bmids[i] < bmids[j] })
