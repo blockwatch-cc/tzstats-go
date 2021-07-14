@@ -6,7 +6,6 @@ package tzstats
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 
 	"blockwatch.cc/tzgo/tezos"
 )
@@ -21,12 +20,14 @@ func NewZmqMessage(topic, body []byte) *ZmqMessage {
 	return &ZmqMessage{string(topic), body, nil}
 }
 
+// Split JSON array into fields, takes care of strings with enclosed comma
 func (m *ZmqMessage) unpack() {
 	if len(m.fields) > 0 {
 		return
 	}
-	m.fields = make([]string, 0)
-	for _, v := range bytes.Split(m.body[1:len(m.body)-1], []byte(",")) {
+	fields := make([]json.RawMessage, 0)
+	_ = json.Unmarshal(m.body, &fields)
+	for _, v := range fields {
 		m.fields = append(m.fields, string(bytes.Trim(v, "\"")))
 	}
 }
@@ -51,7 +52,7 @@ func (m *ZmqMessage) DecodeBlockHash() (tezos.BlockHash, error) {
 func (m *ZmqMessage) DecodeOp() (*Op, error) {
 	o := new(Op).WithColumns(ZmqRawOpColumns...)
 	if err := json.Unmarshal(m.body, o); err != nil {
-		return nil, fmt.Errorf("ZMQ decode: %v", err)
+		return nil, err
 	}
 	return o, nil
 }
@@ -59,7 +60,7 @@ func (m *ZmqMessage) DecodeOp() (*Op, error) {
 func (m *ZmqMessage) DecodeOpWithScript(s *ContractScript) (*Op, error) {
 	o := new(Op).WithColumns(ZmqRawOpColumns...).WithScript(s)
 	if err := json.Unmarshal(m.body, o); err != nil {
-		return nil, fmt.Errorf("ZMQ decode: %v", err)
+		return nil, err
 	}
 	return o, nil
 }
@@ -67,7 +68,7 @@ func (m *ZmqMessage) DecodeOpWithScript(s *ContractScript) (*Op, error) {
 func (m *ZmqMessage) DecodeBlock() (*Block, error) {
 	b := new(Block).WithColumns(ZmqRawBlockColumns...)
 	if err := json.Unmarshal(m.body, b); err != nil {
-		return nil, fmt.Errorf("ZMQ decode: %v", err)
+		return nil, err
 	}
 	return b, nil
 }

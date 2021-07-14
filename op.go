@@ -75,12 +75,13 @@ type Op struct {
 	NOps         int                 `json:"n_ops,omitempty"`
 
 	columns  []string                 // optional, for decoding bulk arrays
-	typs     *ContractScript          // optional, for decoding params & storage
+	param    micheline.Type           // optional, may be decoded from script
 	store    micheline.Type           // optional, may be decoded from script
 	eps      micheline.Entrypoints    // optional, may be decoded from script
 	bigmaps  map[int64]micheline.Type // optional, may be decoded from script
 	withPrim bool
 	withMeta bool
+	onError  int
 }
 
 func (o *Op) Content() []*Op {
@@ -121,14 +122,15 @@ func (o *Op) WithColumns(cols ...string) *Op {
 
 func (o *Op) WithScript(s *ContractScript) *Op {
 	if s != nil {
-		o.store, o.eps, o.bigmaps = s.Types()
+		o.param, o.store, o.eps, o.bigmaps = s.Types()
 	} else {
-		o.store, o.eps, o.bigmaps = micheline.Type{}, nil, nil
+		o.param, o.store, o.eps, o.bigmaps = micheline.Type{}, micheline.Type{}, nil, nil
 	}
 	return o
 }
 
-func (o *Op) WithTypes(store micheline.Type, eps micheline.Entrypoints, b map[int64]micheline.Type) *Op {
+func (o *Op) WithTypes(param, store micheline.Type, eps micheline.Entrypoints, b map[int64]micheline.Type) *Op {
+	o.param = param
 	o.store = store
 	o.eps = eps
 	o.bigmaps = b
@@ -142,6 +144,11 @@ func (o *Op) WithPrim(b bool) *Op {
 
 func (o *Op) WithMeta(b bool) *Op {
 	o.withMeta = b
+	return o
+}
+
+func (o *Op) OnError(action int) *Op {
+	o.onError = action
 	return o
 }
 
@@ -207,8 +214,6 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 	err := dec.Decode(&unpacked)
 	if err != nil {
 		return err
-	}
-	if o.typs != nil && o.bigmaps == nil {
 	}
 	for i, v := range o.columns {
 		f := unpacked[i]
@@ -305,17 +310,18 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 					op.Parameters = &ContractParameters{
 						Entrypoint: params.Entrypoint,
 					}
+					ep, prim, _ := params.MapEntrypoint(o.param)
 					if o.withPrim {
-						op.Parameters.ContractValue.Prim = &params.Value
+						op.Parameters.ContractValue.Prim = &prim
 					}
-					if o.eps != nil {
-						if ep, ok := o.eps[params.Entrypoint]; ok {
-							op.Parameters.Call = ep.Call
-							op.Parameters.Branch = ep.Branch
-							op.Parameters.Id = ep.Id
-							val := micheline.NewValue(ep.Type(), params.Value)
-							op.Parameters.ContractValue.Value, err = val.Map()
-						}
+					op.Parameters.Call = ep.Call
+					op.Parameters.Branch = ep.Branch
+					op.Parameters.Id = ep.Id
+					val := micheline.NewValue(ep.Type(), prim)
+					val.Render = o.onError
+					op.Parameters.ContractValue.Value, err = val.Map()
+					if err != nil {
+						err = fmt.Errorf("decoding params %s: %v", f.(string), err)
 					}
 				}
 			}
@@ -331,7 +337,11 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 					}
 					if o.store.IsValid() {
 						val := micheline.NewValue(o.store, prim)
+						val.Render = o.onError
 						op.Storage.ContractValue.Value, err = val.Map()
+						if err != nil {
+							err = fmt.Errorf("decoding storage %s: %v", f.(string), err)
+						}
 					}
 				}
 			}
@@ -349,9 +359,6 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 						} else {
 							ktyp = v.Key.BuildType()
 						}
-						keybuf, _ := v.GetKey(ktyp).MarshalJSON()
-						mk := MultiKey{}
-						_ = mk.UnmarshalJSON(keybuf)
 						op.BigmapDiff[i] = BigmapUpdate{
 							Action:   v.Action,
 							BigmapId: v.Id,
@@ -369,9 +376,13 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 							}
 						default:
 							// update/remove only
-							op.BigmapDiff[i].BigmapValue = BigmapValue{
-								Key:     mk,
-								KeyHash: v.KeyHash,
+							op.BigmapDiff[i].BigmapValue = BigmapValue{}
+							if !v.Key.IsEmptyBigmap() {
+								keybuf, _ := v.GetKey(ktyp).MarshalJSON()
+								mk := MultiKey{}
+								_ = mk.UnmarshalJSON(keybuf)
+								op.BigmapDiff[i].BigmapValue.Key = mk
+								op.BigmapDiff[i].BigmapValue.KeyHash = v.KeyHash
 							}
 							if o.withMeta {
 								op.BigmapDiff[i].BigmapValue.Meta = &BigmapMeta{
@@ -392,7 +403,11 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 								// unpack value if type is known
 								if vtyp.IsValid() {
 									val := micheline.NewValue(vtyp, v.Value)
+									val.Render = o.onError
 									op.BigmapDiff[i].BigmapValue.Value, err = val.Map()
+									if err != nil {
+										err = fmt.Errorf("decoding bigmap %d/%s: %v", v.Id, v.KeyHash, err)
+									}
 								}
 							}
 						}

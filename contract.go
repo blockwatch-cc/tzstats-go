@@ -221,7 +221,8 @@ type ContractScript struct {
 	Script      *micheline.Script     `json:"script,omitempty"`
 }
 
-func (s ContractScript) Types() (store micheline.Type, eps micheline.Entrypoints, bigmaps map[int64]micheline.Type) {
+func (s ContractScript) Types() (param, store micheline.Type, eps micheline.Entrypoints, bigmaps map[int64]micheline.Type) {
+	param = s.Script.ParamType()
 	store = s.Script.StorageType()
 	eps, _ = s.Script.Entrypoints(true)
 	bigmaps = make(map[int64]micheline.Type)
