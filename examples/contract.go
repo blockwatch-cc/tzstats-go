@@ -180,7 +180,7 @@ func getContractStorage(ctx context.Context, c *tzstats.Client, addr tezos.Addre
 		return err
 	}
 	fmt.Println("Storage Contents:")
-	print(micheline.NewValue(cc.Script.StorageType(), store.Prim), 2)
+	print(micheline.NewValue(cc.Script.StorageType(), *store.Prim), 2)
 	if withPrim {
 		fmt.Println("Michelson:")
 		print(store.Prim, 0)
@@ -209,7 +209,7 @@ func getContractCall(ctx context.Context, c *tzstats.Client, hash tezos.OpHash) 
 			return err
 		}
 		fmt.Printf("Call Parameters for %d/%d", op.OpC, op.OpI)
-		print(micheline.NewValue(eps[op.Parameters.Call].Type(), op.Parameters.Prim), 2)
+		print(micheline.NewValue(eps[op.Parameters.Call].Type(), *op.Parameters.Prim), 2)
 		if withPrim {
 			fmt.Println("Michelson:")
 			print(op.Parameters.Prim, 0)

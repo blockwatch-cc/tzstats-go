@@ -152,6 +152,8 @@ var ZmqRawBlockColumns = []string{
 	"pct_account_reuse",
 	"baker",
 	"predecessor",
+	"lb_esc_vote",
+	"lb_esc_ema",
 }
 
 var ZmqRawOpColumns = []string{

@@ -6,6 +6,7 @@ package tzstats
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -21,17 +22,30 @@ type Right struct {
 	Timestamp      time.Time       `json:"time"`
 	Type           tezos.RightType `json:"type"`
 	Priority       int             `json:"priority"`
-	Slot           int             `json:"slot"`
+	Slots          []int           `json:"slots"`
 	AccountId      uint64          `json:"account_id"`
 	Address        tezos.Address   `json:"address"`
 	IsUsed         bool            `json:"is_used"`
 	IsLost         bool            `json:"is_lost"`
 	IsStolen       bool            `json:"is_stolen"`
 	IsMissed       bool            `json:"is_missed"`
-	IsBondMiss     bool            `json:"is_bind_miss"`
+	IsBondMiss     bool            `json:"is_bond_miss"`
 	IsSeedRequired bool            `json:"is_seed_required"`
 	IsSeedRevealed bool            `json:"is_seed_revealed"`
 	columns        []string        `json:"-"`
+}
+
+func decodeBitVector(s string) []int {
+	retval := make([]int, 0)
+	buf, _ := hex.DecodeString(s)
+	for idx, value := range buf {
+		for i := 0; i < 8; i++ {
+			if value&(1<<uint(i)) != 0 {
+				retval = append(retval, idx*8+i)
+			}
+		}
+	}
+	return retval
 }
 
 type RightsList struct {
@@ -120,7 +134,9 @@ func (r *Right) UnmarshalJSONBrief(data []byte) error {
 			right.Type = tezos.ParseRightType(f.(string))
 		case "priority":
 			right.Priority, err = strconv.Atoi(f.(json.Number).String())
-			right.Slot = right.Priority
+		case "slots":
+			// TODO: decode from hex string
+			right.Slots = decodeBitVector(f.(string))
 		case "account_id":
 			right.AccountId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
 		case "address":

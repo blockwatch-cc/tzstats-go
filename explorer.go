@@ -70,53 +70,57 @@ func (c *Client) GetTip(ctx context.Context) (*Tip, error) {
 }
 
 type BlockchainConfig struct {
-	Name                         string     `json:"name"`
-	Network                      string     `json:"network"`
-	Symbol                       string     `json:"symbol"`
-	ChainId                      string     `json:"chain_id"`
-	Version                      int        `json:"version"`
-	Deployment                   int        `json:"deployment"`
-	Protocol                     string     `json:"protocol"`
-	StartHeight                  int64      `json:"start_height"`
-	EndHeight                    int64      `json:"end_height"`
-	NoRewardCycles               int64      `json:"no_reward_cycles"`
-	SecurityDepositRampUpCycles  int64      `json:"security_deposit_ramp_up_cycles"`
-	Decimals                     int        `json:"decimals"`
-	Token                        int64      `json:"units"`
-	BlockReward                  float64    `json:"block_rewards"`
-	BlockSecurityDeposit         float64    `json:"block_security_deposit"`
-	BlocksPerCommitment          int64      `json:"blocks_per_commitment"`
-	BlocksPerCycle               int64      `json:"blocks_per_cycle"`
-	BlocksPerRollSnapshot        int64      `json:"blocks_per_roll_snapshot"`
-	BlocksPerVotingPeriod        int64      `json:"blocks_per_voting_period"`
-	CostPerByte                  int64      `json:"cost_per_byte"`
-	EndorsementReward            float64    `json:"endorsement_reward"`
-	EndorsementSecurityDeposit   float64    `json:"endorsement_security_deposit"`
-	EndorsersPerBlock            int        `json:"endorsers_per_block"`
-	HardGasLimitPerBlock         int64      `json:"hard_gas_limit_per_block"`
-	HardGasLimitPerOperation     int64      `json:"hard_gas_limit_per_operation"`
-	HardStorageLimitPerOperation int64      `json:"hard_storage_limit_per_operation"`
-	MaxOperationDataLength       int        `json:"max_operation_data_length"`
-	MaxProposalsPerDelegate      int        `json:"max_proposals_per_delegate"`
-	MaxRevelationsPerBlock       int        `json:"max_revelations_per_block"`
-	MichelsonMaximumTypeSize     int        `json:"michelson_maximum_type_size"`
-	NonceLength                  int        `json:"nonce_length"`
-	OriginationBurn              float64    `json:"origination_burn"`
-	OriginationSize              int64      `json:"origination_size"`
-	PreservedCycles              int64      `json:"preserved_cycles"`
-	ProofOfWorkNonceSize         int        `json:"proof_of_work_nonce_size"`
-	ProofOfWorkThreshold         uint64     `json:"proof_of_work_threshold"`
-	SeedNonceRevelationTip       float64    `json:"seed_nonce_revelation_tip"`
-	TimeBetweenBlocks            [2]int     `json:"time_between_blocks"`
-	TokensPerRoll                float64    `json:"tokens_per_roll"`
-	TestChainDuration            int64      `json:"test_chain_duration"`
-	MinProposalQuorum            int64      `json:"min_proposal_quorum"`
-	QuorumMin                    int64      `json:"quorum_min"`
-	QuorumMax                    int64      `json:"quorum_max"`
-	BlockRewardV6                [2]float64 `json:"block_rewards_v6"`
-	EndorsementRewardV6          [2]float64 `json:"endorsement_rewards_v6"`
-	MaxAnonOpsPerBlock           int        `json:"max_anon_ops_per_block"`
-	NumVotingPeriods             int        `json:"num_voting_periods"`
+	Name                              string     `json:"name"`
+	Network                           string     `json:"network"`
+	Symbol                            string     `json:"symbol"`
+	ChainId                           string     `json:"chain_id"`
+	Version                           int        `json:"version"`
+	Deployment                        int        `json:"deployment"`
+	Protocol                          string     `json:"protocol"`
+	StartHeight                       int64      `json:"start_height"`
+	EndHeight                         int64      `json:"end_height"`
+	NoRewardCycles                    int64      `json:"no_reward_cycles"`
+	SecurityDepositRampUpCycles       int64      `json:"security_deposit_ramp_up_cycles"`
+	Decimals                          int        `json:"decimals"`
+	Token                             int64      `json:"units"`
+	BlockReward                       float64    `json:"block_rewards"`
+	BlockSecurityDeposit              float64    `json:"block_security_deposit"`
+	BlocksPerCommitment               int64      `json:"blocks_per_commitment"`
+	BlocksPerCycle                    int64      `json:"blocks_per_cycle"`
+	BlocksPerRollSnapshot             int64      `json:"blocks_per_roll_snapshot"`
+	BlocksPerVotingPeriod             int64      `json:"blocks_per_voting_period"`
+	CostPerByte                       int64      `json:"cost_per_byte"`
+	EndorsementReward                 float64    `json:"endorsement_reward"`
+	EndorsementSecurityDeposit        float64    `json:"endorsement_security_deposit"`
+	EndorsersPerBlock                 int        `json:"endorsers_per_block"`
+	HardGasLimitPerBlock              int64      `json:"hard_gas_limit_per_block"`
+	HardGasLimitPerOperation          int64      `json:"hard_gas_limit_per_operation"`
+	HardStorageLimitPerOperation      int64      `json:"hard_storage_limit_per_operation"`
+	MaxOperationDataLength            int        `json:"max_operation_data_length"`
+	MaxProposalsPerDelegate           int        `json:"max_proposals_per_delegate"`
+	MaxRevelationsPerBlock            int        `json:"max_revelations_per_block"`
+	MichelsonMaximumTypeSize          int        `json:"michelson_maximum_type_size"`
+	NonceLength                       int        `json:"nonce_length"`
+	OriginationBurn                   float64    `json:"origination_burn"`
+	OriginationSize                   int64      `json:"origination_size"`
+	PreservedCycles                   int64      `json:"preserved_cycles"`
+	ProofOfWorkNonceSize              int        `json:"proof_of_work_nonce_size"`
+	ProofOfWorkThreshold              uint64     `json:"proof_of_work_threshold"`
+	SeedNonceRevelationTip            float64    `json:"seed_nonce_revelation_tip"`
+	TimeBetweenBlocks                 [2]int     `json:"time_between_blocks"`
+	TokensPerRoll                     float64    `json:"tokens_per_roll"`
+	TestChainDuration                 int64      `json:"test_chain_duration"`
+	MinProposalQuorum                 int64      `json:"min_proposal_quorum"`
+	QuorumMin                         int64      `json:"quorum_min"`
+	QuorumMax                         int64      `json:"quorum_max"`
+	BlockRewardV6                     [2]float64 `json:"block_rewards_v6"`
+	EndorsementRewardV6               [2]float64 `json:"endorsement_rewards_v6"`
+	MaxAnonOpsPerBlock                int        `json:"max_anon_ops_per_block"`
+	NumVotingPeriods                  int        `json:"num_voting_periods"`
+	LiquidityBakingEscapeEmaThreshold int64      `json:"liquidity_baking_escape_ema_threshold"`
+	LiquidityBakingSubsidy            int64      `json:"liquidity_baking_subsidy"`
+	LiquidityBakingSunsetLevel        int64      `json:"liquidity_baking_sunset_level"`
+	MinimalBlockDelay                 int        `json:"minimal_block_delay"`
 }
 
 func (c *Client) GetConfig(ctx context.Context) (*BlockchainConfig, error) {
@@ -156,6 +160,7 @@ type Supply struct {
 	MintedEndorsing     float64   `json:"minted_endorsing"`
 	MintedSeeding       float64   `json:"minted_seeding"`
 	MintedAirdrop       float64   `json:"minted_airdrop"`
+	MintedSubsidy       float64   `json:"minted_subsidy"`
 	Burned              float64   `json:"burned"`
 	BurnedDoubleBaking  float64   `json:"burned_double_baking"`
 	BurnedDoubleEndorse float64   `json:"burned_double_endorse"`

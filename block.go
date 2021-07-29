@@ -34,7 +34,7 @@ type Block struct {
 	VotingPeriodKind    tezos.VotingPeriodKind `json:"voting_period_kind"`
 	BakerId             uint64                 `json:"baker_id"`
 	Baker               tezos.Address          `json:"baker"`
-	SlotsEndorsed       uint32                 `json:"endorsed_slots"`
+	SlotsEndorsed       string                 `json:"endorsed_slots"`
 	NSlotsEndorsed      int                    `json:"n_endorsed_slots"`
 	NOps                int                    `json:"n_ops"`
 	NOpsFailed          int                    `json:"n_ops_failed"`
@@ -73,6 +73,8 @@ type Block struct {
 	StorageSize         int64                  `json:"storage_size"`
 	TDD                 float64                `json:"days_destroyed"`
 	PctAccountReuse     float64                `json:"pct_account_reuse"`
+	LbEscapeVote        bool                   `json:"lb_esc_vote"`
+	LbEscapeEma         int64                  `json:"lb_esc_ema"`
 	Metadata            map[string]Metadata    `json:"metadata"`
 	Rights              []Right                `json:"rights"`
 	Ops                 []*Op                  `json:"ops"`
@@ -117,6 +119,10 @@ func (b *Block) BlockId() BlockId {
 		Hash:   b.Hash.Clone(),
 		Time:   b.Timestamp,
 	}
+}
+
+func (b *Block) GetEndorsedSlots() []int {
+	return decodeBitVector(b.SlotsEndorsed)
 }
 
 func (b *Block) WithColumns(cols ...string) *Block {
@@ -230,9 +236,7 @@ func (b *Block) UnmarshalJSONBrief(data []byte) error {
 		case "baker_id":
 			block.BakerId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
 		case "endorsed_slots":
-			var i uint64
-			i, err = strconv.ParseUint(f.(json.Number).String(), 10, 32)
-			block.SlotsEndorsed = uint32(i)
+			block.SlotsEndorsed = f.(string)
 		case "n_endorsed_slots":
 			block.NSlotsEndorsed, err = strconv.Atoi(f.(json.Number).String())
 		case "n_ops":
@@ -313,6 +317,10 @@ func (b *Block) UnmarshalJSONBrief(data []byte) error {
 			block.Baker, err = tezos.ParseAddress(f.(string))
 		case "predecessor":
 			block.ParentHash, err = tezos.ParseBlockHash(f.(string))
+		case "lb_esc_vote":
+			block.LbEscapeVote, err = strconv.ParseBool(f.(json.Number).String())
+		case "lb_esc_ema":
+			block.LbEscapeEma, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		}
 		if err != nil {
 			return err
