@@ -8,7 +8,7 @@ This SDK is based on [TzGo](https://github.com/blockwatch-cc/tzgo), our open-sou
 
 ### TzStats-Go Versioning
 
-As long as TzStats-Go is in beta status we will use major version 0.x. Once interfaces are stable we switch to 1.x. The minor version number expresses compatibility with a Tezos protocol release, e.g. v0.9.0 supports all protocols up to Florence.
+As long as TzStats-Go is in beta status we will use major version 0.x. Once interfaces are stable we switch to 1.x. The minor version number expresses compatibility with a Tezos protocol release, e.g. v0.9.x supports all protocols up to Florence, v0.10.x supports Granada.
 
 
 ### Installation
@@ -248,13 +248,10 @@ client := tzstats.DefaultClient
 ctx := context.Background()
 
 // create a new query object
-q := client.NewBigmapQuery()
+q := client.NewBigmapValueQuery()
 
 // add filters and configure the query to list all active keys
 q.WithFilter(tzstats.FilterModeEqual, "bigmap_id", 514).
-    WithFilter(tzstats.FilterModeEqual, "action", "update").
-    WithFilter(tzstats.FilterModeEqual, "is_deleted", false).
-    WithFilter(tzstats.FilterModeEqual, "is_replaced", false).
     WithColumns("row_id", "key_hash", "key", "value").
     WithLimit(1000).
     WithOrder(tzstats.OrderDesc)
@@ -268,9 +265,9 @@ for _, row := range list.Rows {
 }
 ```
 
-### Listing many Bigmap keys with client-side data unfolding
+### Listing many Bigmap keys with client-side data decoding
 
-Extending the example above, we now use TzGo's Micheline features to unfold annotated bigmap data into native Go structs. For efficiency reasons the API only sends binary (hex-encoded) content for smart contract storage. The SDK transparently decodes this into native Micheline primitives for further processing as we see in the example below.
+Extending the example above, we now use TzGo's Micheline features to decode annotated bigmap data into native Go structs. For efficiency reasons the API only sends binary (hex-encoded) content for smart contract storage. The SDK lets you decodes this into native Micheline primitives or native Go structs for further processing as shown in the example below.
 
 ```go
 import (
@@ -293,13 +290,10 @@ keyType := info.MakeKeyType()
 valType := info.MakeValueType()
 
 // create a new query object
-q := client.NewBigmapQuery()
+q := client.NewBigmapValueQuery()
 
 // add filters and configure the query to list all active keys
 q.WithFilter(tzstats.FilterModeEqual, "bigmap_id", 514).
-    WithFilter(tzstats.FilterModeEqual, "action", "update").
-    WithFilter(tzstats.FilterModeEqual, "is_deleted", false).
-    WithFilter(tzstats.FilterModeEqual, "is_replaced", false).
     WithColumns("row_id", "key_hash", "key", "value").
     WithLimit(1000).
     WithOrder(tzstats.OrderDesc)
@@ -309,8 +303,9 @@ list, err := q.Run(ctx)
 
 // walk rows
 for _, row := range list.Rows {
-    // join native value prims with types
-    key, val := row.GetKey(keyType), row.GetValue(valType)
+    // unpack to Micheline primitives and tag types (we ignore errors here)
+    key, _ := row.DecodeKey(keyType)
+    val, _ := row.DecodeValue(valType)
 
     // unpack into Go type
     var nft HicNFT
