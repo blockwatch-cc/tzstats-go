@@ -1,12 +1,11 @@
-blockwatch.cc/tzgo v0.9.9-0.20210714100549-1010bd652e38 h1:TxBr/rCNI3qkoxudOxP76wSRxmoVHxsmgR46ROGYMEw=
-blockwatch.cc/tzgo v0.9.9-0.20210714100549-1010bd652e38/go.mod h1:fzKykBKgWMnmhi/YE+7NQ0tLEKHiY1kAakgvmrf0izw=
-blockwatch.cc/tzgo v0.9.10-0.20210728180431-c7e59680b004 h1:MsFgJ6XesMYNMDGVeRzWUIjogke+0MEfgz+FcOgtIkg=
-blockwatch.cc/tzgo v0.9.10-0.20210728180431-c7e59680b004/go.mod h1:fzKykBKgWMnmhi/YE+7NQ0tLEKHiY1kAakgvmrf0izw=
+blockwatch.cc/tzgo v0.10.0 h1:u+sgUCNxZCuGBR7XvaAyatlcc6w9gGZS7khUcpcN/fk=
+blockwatch.cc/tzgo v0.10.0/go.mod h1:fzKykBKgWMnmhi/YE+7NQ0tLEKHiY1kAakgvmrf0izw=
 github.com/daviddengcn/go-colortext v1.0.0/go.mod h1:zDqEI5NVUop5QPpVJUxE9UO10hRnmkD5G4Pmri9+m4c=
 github.com/echa/code v0.0.0-20201118130056-1878364e4ad4 h1:WYlhoQDiPM/AZVcIyskmvhfaqdhuK43yB2NuY+lx1Xk=
 github.com/echa/code v0.0.0-20201118130056-1878364e4ad4/go.mod h1:ZDcNR/KxbS2CCjtolHhGP5dl+9Ux7terHosEJNChm+U=
-github.com/echa/log v1.0.3 h1:2If0QCt2MF9byXeYHfeCcemfqxTPGZpaKyOvneXo8ho=
 github.com/echa/log v1.0.3/go.mod h1:V8lWE4YGcwDdg0IPBqDQ9eWp2MdsMHfvHpSjaIp4+VQ=
+github.com/echa/log v1.0.6 h1:kUY6lADKWTmmusB9xEwunYe5715k8NkokYgriHhw5rw=
+github.com/echa/log v1.0.6/go.mod h1:V8lWE4YGcwDdg0IPBqDQ9eWp2MdsMHfvHpSjaIp4+VQ=
 github.com/go-bson/bson v0.0.0-20171017145622-6d291e839eca h1:jPdPq2xinuUF8i7qSJgGFGXYwLLrEun8Gkz2hnKl0AM=
 github.com/go-bson/bson v0.0.0-20171017145622-6d291e839eca/go.mod h1:6wiyFSKWkT/Lb+bV2RNbeGdC4ctqsZ/Bv46cDGj9JBE=
 github.com/golangplus/bytes v0.0.0-20160111154220-45c989fe5450/go.mod h1:Bk6SMAONeMXrxql8uvOKuAZSu8aM5RUGv+1C6IJaEho=
