@@ -34,7 +34,7 @@ type Block struct {
 	VotingPeriodKind    tezos.VotingPeriodKind `json:"voting_period_kind"`
 	BakerId             uint64                 `json:"baker_id"`
 	Baker               tezos.Address          `json:"baker"`
-	SlotsEndorsed       string                 `json:"endorsed_slots"`
+	SlotMask            string                 `json:"slot_mask"`
 	NSlotsEndorsed      int                    `json:"n_endorsed_slots"`
 	NOps                int                    `json:"n_ops"`
 	NOpsFailed          int                    `json:"n_ops_failed"`
@@ -122,7 +122,7 @@ func (b *Block) BlockId() BlockId {
 }
 
 func (b *Block) GetEndorsedSlots() []int {
-	return decodeBitVector(b.SlotsEndorsed)
+	return decodeBitVector(b.SlotMask)
 }
 
 func (b *Block) WithColumns(cols ...string) *Block {
@@ -235,8 +235,8 @@ func (b *Block) UnmarshalJSONBrief(data []byte) error {
 			block.VotingPeriodKind = tezos.ParseVotingPeriod(f.(string))
 		case "baker_id":
 			block.BakerId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
-		case "endorsed_slots":
-			block.SlotsEndorsed = f.(string)
+		case "slot_mask":
+			block.SlotMask = f.(string)
 		case "n_endorsed_slots":
 			block.NSlotsEndorsed, err = strconv.Atoi(f.(json.Number).String())
 		case "n_ops":
