@@ -49,7 +49,7 @@ func (t TypeInfo) FieldNames() []string {
 }
 
 func (f FieldInfo) String() string {
-	return fmt.Sprintf("FieldInfo: %s typ=%s idx=%v", f.Name, f.TypeName, f.Idx)
+	return fmt.Sprintf("FieldInfo: %s typ=%s idx=%d", f.Name, f.TypeName, f.Idx)
 }
 
 var tinfoMap = make(map[reflect.Type]*TypeInfo)

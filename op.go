@@ -321,7 +321,7 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 					val.Render = o.onError
 					op.Parameters.ContractValue.Value, err = val.Map()
 					if err != nil {
-						err = fmt.Errorf("decoding params %s: %v", f.(string), err)
+						err = fmt.Errorf("decoding params %s: %w", f.(string), err)
 					}
 				}
 			}
@@ -340,7 +340,7 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 						val.Render = o.onError
 						op.Storage.ContractValue.Value, err = val.Map()
 						if err != nil {
-							err = fmt.Errorf("decoding storage %s: %v", f.(string), err)
+							err = fmt.Errorf("decoding storage %s: %w", f.(string), err)
 						}
 					}
 				}
@@ -406,7 +406,7 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 									val.Render = o.onError
 									op.BigmapDiff[i].BigmapValue.Value, err = val.Map()
 									if err != nil {
-										err = fmt.Errorf("decoding bigmap %d/%s: %v", v.Id, v.KeyHash, err)
+										err = fmt.Errorf("decoding bigmap %d/%s: %w", v.Id, v.KeyHash, err)
 									}
 								}
 							}

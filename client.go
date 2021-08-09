@@ -152,7 +152,7 @@ func (c *Client) newRequest(ctx context.Context, method, path string, headers ht
 // provided response channel.
 func (c *Client) handleRequest(req *request) {
 	// only dump content-type application/json
-	log.Tracef("%v", newLogClosure(func() string {
+	log.Trace(newLogClosure(func() string {
 		r, _ := httputil.DumpRequestOut(req.httpRequest, req.httpRequest.Header.Get("Content-Type") == "application/json")
 		return string(r)
 	}))
@@ -164,7 +164,7 @@ func (c *Client) handleRequest(req *request) {
 	}
 	defer resp.Body.Close()
 
-	log.Tracef("response: %v", newLogClosure(func() string {
+	log.Tracef("response: %s", newLogClosure(func() string {
 		s, _ := httputil.DumpResponse(resp, isTextResponse(resp))
 		return string(s)
 	}))
@@ -201,7 +201,7 @@ func (c *Client) handleRequest(req *request) {
 			status:  resp.StatusCode,
 			request: req.String(),
 			headers: mergeHeaders(req.responseHeaders, resp.Header, resp.Trailer),
-			err:     fmt.Errorf("reading reply: %v", err),
+			err:     fmt.Errorf("reading reply: %w", err),
 		}
 		return
 	}
@@ -243,7 +243,7 @@ func (c *Client) handleRequest(req *request) {
 			}
 			return
 		}
-		err = fmt.Errorf("unmarshalling reply: %v", err)
+		err = fmt.Errorf("unmarshalling reply: %w", err)
 	}
 	req.responseChan <- &response{
 		status:  resp.StatusCode,
