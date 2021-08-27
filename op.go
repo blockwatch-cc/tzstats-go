@@ -21,7 +21,7 @@ type Op struct {
 	RowId        uint64              `json:"row_id"`
 	Hash         tezos.OpHash        `json:"hash"`
 	Type         tezos.OpType        `json:"type"`
-	BlockHash    tezos.BlockHash     `json:"block"`
+	BlockHash    tezos.BlockHash     `json:"block_hash"`
 	Timestamp    time.Time           `json:"time"`
 	Height       int64               `json:"height"`
 	Cycle        int64               `json:"cycle"`
@@ -63,16 +63,16 @@ type Op struct {
 	TDD          float64             `json:"days_destroyed"`
 	BranchHeight int64               `json:"branch_height"`
 	BranchDepth  int64               `json:"branch_depth"`
-	BranchHash   tezos.BlockHash     `json:"branch"`
+	BranchHash   tezos.BlockHash     `json:"branch_hash"`
 	Entrypoint   int                 `json:"entrypoint_id"`
 	IsOrphan     bool                `json:"is_orphan,omitempty"`
 	IsBatch      bool                `json:"is_batch,omitempty"`
 	IsSapling    bool                `json:"is_sapling,omitempty"`
-	BatchVolume  float64             `json:"batch_volume,omitempty"`
-	Metadata     map[string]Metadata `json:"metadata,omitempty"`
-	Batch        []*Op               `json:"batch,omitempty"`
-	Internal     []*Op               `json:"internal,omitempty"`
-	NOps         int                 `json:"n_ops,omitempty"`
+	BatchVolume  float64             `json:"batch_volume,omitempty,notable"`
+	Metadata     map[string]Metadata `json:"metadata,omitempty,notable"`
+	Batch        []*Op               `json:"batch,omitempty,notable"`
+	Internal     []*Op               `json:"internal,omitempty,notable"`
+	NOps         int                 `json:"n_ops,omitempty,notable"`
 
 	columns  []string                 // optional, for decoding bulk arrays
 	param    micheline.Type           // optional, may be decoded from script
@@ -229,7 +229,7 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 			if err == nil {
 				op.Timestamp = time.Unix(0, ts*1000000).UTC()
 			}
-		case "block":
+		case "block_hash":
 			op.BlockHash, err = tezos.ParseBlockHash(f.(string))
 		case "height":
 			op.Height, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
@@ -421,6 +421,8 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 			op.Errors, err = json.Marshal(f)
 		case "days_destroyed":
 			op.TDD, err = f.(json.Number).Float64()
+		case "branch_hash":
+			op.BranchHash, err = tezos.ParseBlockHash(f.(string))
 		case "branch_height":
 			op.BranchHeight, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "branch_depth":
@@ -452,7 +454,7 @@ func (c *Client) NewOpQuery() OpQuery {
 		Format:  FormatJSON,
 		Limit:   DefaultLimit,
 		Order:   OrderAsc,
-		Columns: tinfo.Aliases(),
+		Columns: tinfo.FilteredAliases("notable"),
 		Filter:  make(FilterList, 0),
 	}
 	return OpQuery{q}

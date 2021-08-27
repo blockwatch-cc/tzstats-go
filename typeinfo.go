@@ -32,6 +32,26 @@ type FieldInfo struct {
 	TypeName string
 }
 
+func (f FieldInfo) ContainsFlag(flag string) bool {
+	for _, v := range f.Flags {
+		if v == flag {
+			return true
+		}
+	}
+	return false
+}
+
+func (t TypeInfo) FilteredAliases(f string) []string {
+	s := make([]string, 0, len(t.Fields))
+	for _, v := range t.Fields {
+		if v.ContainsFlag(f) {
+			continue
+		}
+		s = append(s, v.Alias)
+	}
+	return s
+}
+
 func (t TypeInfo) Aliases() []string {
 	s := make([]string, len(t.Fields))
 	for i, v := range t.Fields {

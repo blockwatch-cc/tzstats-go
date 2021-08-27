@@ -20,8 +20,8 @@ type Account struct {
 	AddressType        tezos.AddressType   `json:"address_type"`
 	DelegateId         uint64              `json:"delegate_id"`
 	Delegate           tezos.Address       `json:"delegate"`
-	CreatorId          uint64              `json:"creator_id"`
-	Creator            tezos.Address       `json:"creator"`
+	CreatorId          uint64              `json:"creator_id,omitempty"`
+	Creator            *tezos.Address      `json:"creator,omitempty"`
 	Pubkey             tezos.Key           `json:"pubkey"`
 	FirstIn            int64               `json:"first_in"`
 	FirstOut           int64               `json:"first_out"`
@@ -45,17 +45,17 @@ type Account struct {
 	TotalSent          float64             `json:"total_sent"`
 	TotalBurned        float64             `json:"total_burned"`
 	TotalFeesPaid      float64             `json:"total_fees_paid"`
-	TotalRewardsEarned float64             `json:"total_rewards_earned"`
-	TotalFeesEarned    float64             `json:"total_fees_earned"`
-	TotalLost          float64             `json:"total_lost"`
-	FrozenDeposits     float64             `json:"frozen_deposits"`
-	FrozenRewards      float64             `json:"frozen_rewards"`
-	FrozenFees         float64             `json:"frozen_fees"`
-	UnclaimedBalance   float64             `json:"unclaimed_balance"`
+	TotalRewardsEarned float64             `json:"total_rewards_earned,omitempty"`
+	TotalFeesEarned    float64             `json:"total_fees_earned,omitempty"`
+	TotalLost          float64             `json:"total_lost,omitempty"`
+	FrozenDeposits     float64             `json:"frozen_deposits,omitempty"`
+	FrozenRewards      float64             `json:"frozen_rewards,omitempty"`
+	FrozenFees         float64             `json:"frozen_fees,omitempty"`
+	UnclaimedBalance   float64             `json:"unclaimed_balance,omitempty"`
 	SpendableBalance   float64             `json:"spendable_balance"`
-	DelegatedBalance   float64             `json:"delegated_balance"`
-	TotalDelegations   int64               `json:"total_delegations"`
-	ActiveDelegations  int64               `json:"active_delegations"`
+	DelegatedBalance   float64             `json:"delegated_balance,omitempty"`
+	TotalDelegations   int64               `json:"total_delegations,omitempty"`
+	ActiveDelegations  int64               `json:"active_delegations,omitempty"`
 	IsFunded           bool                `json:"is_funded"`
 	IsActivated        bool                `json:"is_activated"`
 	IsDelegated        bool                `json:"is_delegated"`
@@ -63,12 +63,12 @@ type Account struct {
 	IsDelegate         bool                `json:"is_delegate"`
 	IsActiveDelegate   bool                `json:"is_active_delegate"`
 	IsContract         bool                `json:"is_contract"`
-	BlocksBaked        int                 `json:"blocks_baked"`
-	BlocksMissed       int                 `json:"blocks_missed"`
-	BlocksStolen       int                 `json:"blocks_stolen"`
-	BlocksEndorsed     int                 `json:"blocks_endorsed"`
-	SlotsEndorsed      int                 `json:"slots_endorsed"`
-	SlotsMissed        int                 `json:"slots_missed"`
+	BlocksBaked        int                 `json:"blocks_baked,omitempty"`
+	BlocksMissed       int                 `json:"blocks_missed,omitempty"`
+	BlocksStolen       int                 `json:"blocks_stolen,omitempty"`
+	BlocksEndorsed     int                 `json:"blocks_endorsed,omitempty"`
+	SlotsEndorsed      int                 `json:"slots_endorsed,omitempty"`
+	SlotsMissed        int                 `json:"slots_missed,omitempty"`
 	NOps               int                 `json:"n_ops"`
 	NOpsFailed         int                 `json:"n_ops_failed"`
 	NTx                int                 `json:"n_tx"`
@@ -78,26 +78,26 @@ type Account struct {
 	NBallot            int                 `json:"n_ballot"`
 	TokenGenMin        int64               `json:"token_gen_min"`
 	TokenGenMax        int64               `json:"token_gen_max"`
-	GracePeriod        int64               `json:"grace_period"`
-	StakingBalance     float64             `json:"staking_balance"`
-	StakingCapacity    float64             `json:"staking_capacity"`
-	Rolls              int64               `json:"rolls"`
-	LastBakeHeight     int64               `json:"last_bake_height"`
-	LastBakeBlock      string              `json:"last_bake_block"`
-	LastBakeTime       time.Time           `json:"last_bake_time"`
-	LastEndorseHeight  int64               `json:"last_endorse_height"`
-	LastEndorseBlock   string              `json:"last_endorse_block"`
-	LastEndorseTime    time.Time           `json:"last_endorse_time"`
-	NextBakeHeight     int64               `json:"next_bake_height"`
-	NextBakePriority   int                 `json:"next_bake_priority"`
-	NextBakeTime       time.Time           `json:"next_bake_time"`
-	NextEndorseHeight  int64               `json:"next_endorse_height"`
-	NextEndorseTime    time.Time           `json:"next_endorse_time"`
-	AvgLuck64          int64               `json:"avg_luck_64"`
-	AvgPerformance64   int64               `json:"avg_performance_64"`
-	AvgContribution64  int64               `json:"avg_contribution_64"`
-	BakerVersion       string              `json:"baker_version"`
-	Metadata           map[string]Metadata `json:"metadata"`
+	GracePeriod        int64               `json:"grace_period,omitempty"`
+	StakingBalance     float64             `json:"staking_balance,omitempty,notable"`
+	StakingCapacity    float64             `json:"staking_capacity,omitempty,notable"`
+	Rolls              int64               `json:"rolls,omitempty,notable"`
+	LastBakeHeight     int64               `json:"last_bake_height,omitempty,notable"`
+	LastBakeBlock      string              `json:"last_bake_block,omitempty,notable"`
+	LastBakeTime       *time.Time          `json:"last_bake_time,omitempty,notable"`
+	LastEndorseHeight  int64               `json:"last_endorse_height,omitempty,notable"`
+	LastEndorseBlock   string              `json:"last_endorse_block,omitempty,notable"`
+	LastEndorseTime    *time.Time          `json:"last_endorse_time,omitempty,notable"`
+	NextBakeHeight     int64               `json:"next_bake_height,omitempty"`
+	NextBakePriority   int                 `json:"next_bake_priority,omitempty"`
+	NextBakeTime       *time.Time          `json:"next_bake_time,omitempty"`
+	NextEndorseHeight  int64               `json:"next_endorse_height,omitempty"`
+	NextEndorseTime    *time.Time          `json:"next_endorse_time,omitempty"`
+	AvgLuck64          int64               `json:"avg_luck_64,omitempty,notable"`
+	AvgPerformance64   int64               `json:"avg_performance_64,omitempty,notable"`
+	AvgContribution64  int64               `json:"avg_contribution_64,omitempty,notable"`
+	BakerVersion       string              `json:"baker_version,omitempty"`
+	Metadata           map[string]Metadata `json:"metadata,omitempty,notable"`
 	columns            []string            `json:"-"`
 }
 
@@ -183,7 +183,11 @@ func (a *Account) UnmarshalJSONBrief(data []byte) error {
 		case "creator_id":
 			acc.CreatorId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
 		case "creator":
-			acc.Creator, err = tezos.ParseAddress(f.(string))
+			var a tezos.Address
+			a, err = tezos.ParseAddress(f.(string))
+			if err == nil {
+				acc.Creator = &a
+			}
 		case "pubkey":
 			acc.Pubkey, err = tezos.ParseKey(f.(string))
 		case "first_in":
@@ -392,7 +396,7 @@ func (c *Client) NewAccountQuery() AccountQuery {
 		Format:  FormatJSON,
 		Limit:   DefaultLimit,
 		Order:   OrderAsc,
-		Columns: tinfo.Aliases(),
+		Columns: tinfo.FilteredAliases("notable"),
 		Filter:  make(FilterList, 0),
 	}
 	return AccountQuery{q}

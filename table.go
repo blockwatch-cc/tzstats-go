@@ -118,6 +118,11 @@ func (q *TableQuery) WithOrder(order OrderType) *TableQuery {
 	return q
 }
 
+func (q *TableQuery) WithDesc() *TableQuery {
+	q.Order = OrderDesc
+	return q
+}
+
 func (q *TableQuery) WithVerbose() *TableQuery {
 	q.Verbose = true
 	return q

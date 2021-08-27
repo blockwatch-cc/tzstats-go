@@ -17,8 +17,8 @@ import (
 type Block struct {
 	RowId               uint64                 `json:"row_id"`
 	ParentId            uint64                 `json:"parent_id"`
-	ParentHash          tezos.BlockHash        `json:"predecessor"`
-	FollowerHash        tezos.BlockHash        `json:"successor"`
+	ParentHash          *tezos.BlockHash       `json:"predecessor,omitempty"`
+	FollowerHash        *tezos.BlockHash       `json:"successor,omitempty,notable"`
 	Hash                tezos.BlockHash        `json:"hash"`
 	IsOrphan            bool                   `json:"is_orphan"`
 	Height              int64                  `json:"height"`
@@ -75,9 +75,9 @@ type Block struct {
 	PctAccountReuse     float64                `json:"pct_account_reuse"`
 	LbEscapeVote        bool                   `json:"lb_esc_vote"`
 	LbEscapeEma         int64                  `json:"lb_esc_ema"`
-	Metadata            map[string]Metadata    `json:"metadata"`
-	Rights              []Right                `json:"rights"`
-	Ops                 []*Op                  `json:"ops"`
+	Metadata            map[string]Metadata    `json:"metadata,omitempty,notable"`
+	Rights              []Right                `json:"rights,omitempty,notable"`
+	Ops                 []*Op                  `json:"ops,omitempty,notable"`
 	columns             []string               `json:"-"`
 }
 
@@ -205,6 +205,12 @@ func (b *Block) UnmarshalJSONBrief(data []byte) error {
 			block.ParentId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
 		case "hash":
 			block.Hash, err = tezos.ParseBlockHash(f.(string))
+		case "predecessor":
+			var h tezos.BlockHash
+			h, err = tezos.ParseBlockHash(f.(string))
+			if err == nil {
+				block.ParentHash = &h
+			}
 		case "is_orphan":
 			block.IsOrphan, err = strconv.ParseBool(f.(json.Number).String())
 		case "height":
@@ -315,8 +321,6 @@ func (b *Block) UnmarshalJSONBrief(data []byte) error {
 			block.PctAccountReuse, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "baker":
 			block.Baker, err = tezos.ParseAddress(f.(string))
-		case "predecessor":
-			block.ParentHash, err = tezos.ParseBlockHash(f.(string))
 		case "lb_esc_vote":
 			block.LbEscapeVote, err = strconv.ParseBool(f.(json.Number).String())
 		case "lb_esc_ema":
@@ -345,7 +349,7 @@ func (c *Client) NewBlockQuery() BlockQuery {
 		Table:   "block",
 		Format:  FormatJSON,
 		Limit:   DefaultLimit,
-		Columns: tinfo.Aliases(),
+		Columns: tinfo.FilteredAliases("notable"),
 		Order:   OrderAsc,
 		Filter:  make(FilterList, 0),
 	}
