@@ -155,6 +155,8 @@ func (o *Op) OnError(action int) *Op {
 type OpList struct {
 	Rows    []*Op
 	columns []string
+	ctx     context.Context
+	client  *Client
 }
 
 func (l OpList) Len() int {
@@ -182,6 +184,22 @@ func (l *OpList) UnmarshalJSON(data []byte) error {
 	for _, v := range array {
 		op := &Op{
 			columns: l.columns,
+		}
+		// we may need contract scripts
+		if is, ok := getTableColumn(v, l.columns, "is_contract"); ok && is == "1" {
+			recv, ok := getTableColumn(v, l.columns, "receiver")
+			if ok && recv != "" && recv != "null" {
+				addr, err := tezos.ParseAddress(recv)
+				if err != nil {
+					return fmt.Errorf("decode: invalid receiver address %s: %v", recv, err)
+				}
+				// load contract type info (required for decoding storage/param data)
+				script, err := l.client.loadCachedContractScript(l.ctx, addr)
+				if err != nil {
+					return err
+				}
+				op = op.WithScript(script)
+			}
 		}
 		if err := op.UnmarshalJSON(v); err != nil {
 			return err
@@ -463,6 +481,8 @@ func (c *Client) NewOpQuery() OpQuery {
 func (q OpQuery) Run(ctx context.Context) (*OpList, error) {
 	result := &OpList{
 		columns: q.Columns,
+		ctx:     ctx,
+		client:  q.client,
 	}
 	if err := q.client.QueryTable(ctx, q.TableQuery, result); err != nil {
 		return nil, err

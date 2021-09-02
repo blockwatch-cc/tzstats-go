@@ -14,14 +14,18 @@ import (
 	"net/http/httputil"
 	"strings"
 	"time"
+
+	"blockwatch.cc/tzgo/tezos"
+	lru "github.com/hashicorp/golang-lru"
 )
 
 var (
-	ClientVersion = "0.9.0"
-	DefaultLimit  = 50000
-	userAgent     = "tzstats-go/v" + ClientVersion
-	DefaultClient *Client
-	IpfsClient    *Client
+	ClientVersion    = "0.10.0"
+	DefaultLimit     = 50000
+	DefaultCacheSize = 2048
+	userAgent        = "tzstats-go/v" + ClientVersion
+	DefaultClient    *Client
+	IpfsClient       *Client
 )
 
 func init() {
@@ -32,6 +36,7 @@ func init() {
 type Client struct {
 	httpClient *http.Client
 	params     Params
+	cache      *lru.TwoQueueCache
 	UserAgent  string
 }
 
@@ -43,11 +48,21 @@ func NewClient(url string, httpClient *http.Client) (*Client, error) {
 	if httpClient == nil {
 		httpClient = http.DefaultClient
 	}
+	sz := DefaultCacheSize
+	if sz < 2 {
+		sz = 2
+	}
+	cache, _ := lru.New2Q(sz)
 	return &Client{
 		httpClient: httpClient,
 		params:     params,
+		cache:      cache,
 		UserAgent:  userAgent,
 	}, nil
+}
+
+func (c *Client) UseScriptCache(cache *lru.TwoQueueCache) {
+	c.cache = cache
 }
 
 func (c *Client) get(ctx context.Context, path string, headers http.Header, result interface{}) error {
@@ -252,4 +267,21 @@ func (c *Client) handleRequest(req *request) {
 		result:  respBytes,
 		err:     err,
 	}
+}
+
+func (c *Client) loadCachedContractScript(ctx context.Context, addr tezos.Address) (*ContractScript, error) {
+	if c.cache != nil {
+		if script, ok := c.cache.Get(addr.String()); ok {
+			return script.(*ContractScript), nil
+		}
+	}
+	log.Tracef("Loading contract %s", addr)
+	script, err := c.GetContractScript(ctx, addr, NewContractParams().WithPrim())
+	if err != nil {
+		return nil, err
+	}
+	if c.cache != nil {
+		c.cache.Add(addr.String(), script)
+	}
+	return script, nil
 }

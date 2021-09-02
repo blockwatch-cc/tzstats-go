@@ -4,8 +4,9 @@
 package tzstats
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
+	"fmt"
 
 	"blockwatch.cc/tzgo/tezos"
 )
@@ -20,25 +21,8 @@ func NewZmqMessage(topic, body []byte) *ZmqMessage {
 	return &ZmqMessage{string(topic), body, nil}
 }
 
-// Split JSON array into fields, takes care of strings with enclosed comma
-func (m *ZmqMessage) unpack() {
-	if len(m.fields) > 0 {
-		return
-	}
-	fields := make([]json.RawMessage, 0)
-	_ = json.Unmarshal(m.body, &fields)
-	for _, v := range fields {
-		m.fields = append(m.fields, string(bytes.Trim(v, "\"")))
-	}
-}
-
 func (m *ZmqMessage) GetField(name string) (string, bool) {
-	if idx := zmqFieldIndex(m.topic, name); idx < 0 {
-		return "", false
-	} else {
-		m.unpack()
-		return m.fields[idx], true
-	}
+	return getTableColumn(m.body[1:len(m.body)-1], zmqFields(m.topic), name)
 }
 
 func (m *ZmqMessage) DecodeOpHash() (tezos.OpHash, error) {
@@ -57,8 +41,25 @@ func (m *ZmqMessage) DecodeOp() (*Op, error) {
 	return o, nil
 }
 
-func (m *ZmqMessage) DecodeOpWithScript(s *ContractScript) (*Op, error) {
-	o := new(Op).WithColumns(ZmqRawOpColumns...).WithScript(s)
+func (m *ZmqMessage) DecodeOpWithScript(ctx context.Context, c *Client) (*Op, error) {
+	o := new(Op).WithColumns(ZmqRawOpColumns...)
+
+	// we may need contract scripts
+	if is, ok := getTableColumn(m.body, ZmqRawOpColumns, "is_contract"); ok && is == "1" {
+		recv, ok := getTableColumn(m.body, ZmqRawOpColumns, "receiver")
+		if ok && recv != "" && recv != "null" {
+			addr, err := tezos.ParseAddress(recv)
+			if err != nil {
+				return nil, fmt.Errorf("decode: invalid receiver address %s: %v", recv, err)
+			}
+			// load contract type info (required for decoding storage/param data)
+			script, err := c.loadCachedContractScript(ctx, addr)
+			if err != nil {
+				return nil, err
+			}
+			o = o.WithScript(script)
+		}
+	}
 	if err := json.Unmarshal(m.body, o); err != nil {
 		return nil, err
 	}
@@ -82,16 +83,6 @@ func zmqFields(topic string) []string {
 	default:
 		return nil
 	}
-}
-
-func zmqFieldIndex(topic, name string) int {
-	for i, v := range zmqFields(topic) {
-		if v != name {
-			continue
-		}
-		return i
-	}
-	return -1
 }
 
 var ZmqRawBlockColumns = []string{

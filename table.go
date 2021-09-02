@@ -210,3 +210,50 @@ func (c *Client) StreamTable(ctx context.Context, q TableQuery, w io.Writer) (St
 	}
 	return NewStreamResponse(headers)
 }
+
+func getTableColumn(data []byte, columns []string, name string) (string, bool) {
+	idx := colIndex(columns, name)
+	if idx < 0 {
+		return "", false
+	}
+
+	var (
+		skip   bool
+		escape bool
+		field  int
+		res    []byte
+	)
+	for _, v := range data {
+		if field > idx {
+			break
+		}
+		if field == idx && v != ',' {
+			res = append(res, v)
+		}
+		if escape {
+			escape = false
+			continue
+		}
+		switch v {
+		case '\\':
+			escape = true
+		case '"':
+			skip = !skip
+		case ',':
+			if !skip {
+				field++
+			}
+		}
+	}
+	return strings.Trim(string(res), "\""), true
+}
+
+func colIndex(columns []string, name string) int {
+	for i, v := range columns {
+		if v != name {
+			continue
+		}
+		return i
+	}
+	return -1
+}
