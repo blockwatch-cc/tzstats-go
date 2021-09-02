@@ -202,7 +202,7 @@ func (b *BigmapRow) UnmarshalJSONBrief(data []byte) error {
 }
 
 type BigmapQuery struct {
-	TableQuery
+	tableQuery
 }
 
 func (c *Client) NewBigmapQuery() BigmapQuery {
@@ -210,7 +210,7 @@ func (c *Client) NewBigmapQuery() BigmapQuery {
 	if err != nil {
 		panic(err)
 	}
-	q := TableQuery{
+	q := tableQuery{
 		client:  c,
 		Params:  c.params.Copy(),
 		Table:   "bigmaps",
@@ -227,7 +227,7 @@ func (q BigmapQuery) Run(ctx context.Context) (*BigmapRowList, error) {
 	result := &BigmapRowList{
 		columns: q.Columns,
 	}
-	if err := q.client.QueryTable(ctx, q.TableQuery, result); err != nil {
+	if err := q.client.QueryTable(ctx, &q.tableQuery, result); err != nil {
 		return nil, err
 	}
 	return result, nil

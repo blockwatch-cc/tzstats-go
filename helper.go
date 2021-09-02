@@ -68,12 +68,21 @@ func ToRawString(t interface{}) (string, error) {
 		}
 		return hex.EncodeToString(b), nil
 	case reflect.Slice:
-		if typ.Elem().Kind() != reflect.Uint8 {
-			break
+		if typ.Elem().Kind() == reflect.Uint8 && !typ.Elem().Implements(stringerType) {
+			// []byte
+			b := val.Bytes()
+			return hex.EncodeToString(b), nil
+		} else {
+			// anything else
+			var b strings.Builder
+			for i, l := 0, val.Len(); i < l; i++ {
+				b.WriteString(ToString(val.Index(i).Interface()))
+				if i < l-1 {
+					b.WriteByte(',')
+				}
+			}
+			return b.String(), nil
 		}
-		// []byte
-		b := val.Bytes()
-		return hex.EncodeToString(b), nil
 	case reflect.Map:
 		return fmt.Sprintf("%#v", t), nil
 	}

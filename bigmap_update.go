@@ -223,7 +223,7 @@ func (b *BigmapUpdateRow) UnmarshalJSONBrief(data []byte) error {
 }
 
 type BigmapUpdateQuery struct {
-	TableQuery
+	tableQuery
 }
 
 func (c *Client) NewBigmapUpdateQuery() BigmapUpdateQuery {
@@ -231,7 +231,7 @@ func (c *Client) NewBigmapUpdateQuery() BigmapUpdateQuery {
 	if err != nil {
 		panic(err)
 	}
-	q := TableQuery{
+	q := tableQuery{
 		client:  c,
 		Params:  c.params.Copy(),
 		Table:   "bigmap_updates",
@@ -248,7 +248,7 @@ func (q BigmapUpdateQuery) Run(ctx context.Context) (*BigmapUpdateRowList, error
 	result := &BigmapUpdateRowList{
 		columns: q.Columns,
 	}
-	if err := q.client.QueryTable(ctx, q.TableQuery, result); err != nil {
+	if err := q.client.QueryTable(ctx, &q.tableQuery, result); err != nil {
 		return nil, err
 	}
 	return result, nil

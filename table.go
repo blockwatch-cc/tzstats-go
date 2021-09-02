@@ -57,7 +57,22 @@ const (
 	FormatCSV  FormatType = "csv"
 )
 
-type TableQuery struct {
+type TableQuery interface {
+	WithFilter(mode FilterMode, col string, val interface{}) TableQuery
+	ReplaceFilter(mode FilterMode, col string, val interface{}) TableQuery
+	ResetFilter() TableQuery
+	WithLimit(limit int) TableQuery
+	WithColumns(cols ...string) TableQuery
+	WithOrder(order OrderType) TableQuery
+	WithDesc() TableQuery
+	WithVerbose() TableQuery
+	WithQuiet() TableQuery
+	WithFormat(format FormatType) TableQuery
+	Check() error
+	Url() string
+}
+
+type tableQuery struct {
 	Params
 	client  *Client
 	Table   string     // "op", "block", "chain", "flow"
@@ -72,8 +87,8 @@ type TableQuery struct {
 	// Sort string // asc/desc
 }
 
-func NewTableQuery(name string) TableQuery {
-	return TableQuery{
+func newTableQuery(name string) tableQuery {
+	return tableQuery{
 		Params: NewParams(),
 		Table:  name,
 		Filter: make(FilterList, 0),
@@ -81,12 +96,12 @@ func NewTableQuery(name string) TableQuery {
 	}
 }
 
-func (q *TableQuery) WithFilter(mode FilterMode, col string, val interface{}) *TableQuery {
+func (q *tableQuery) WithFilter(mode FilterMode, col string, val interface{}) TableQuery {
 	q.Filter.Add(mode, col, val)
 	return q
 }
 
-func (q *TableQuery) ReplaceFilter(mode FilterMode, col string, val interface{}) *TableQuery {
+func (q *tableQuery) ReplaceFilter(mode FilterMode, col string, val interface{}) TableQuery {
 	for i, v := range q.Filter {
 		if v.Column == col {
 			q.Filter[i].Mode = mode
@@ -98,47 +113,47 @@ func (q *TableQuery) ReplaceFilter(mode FilterMode, col string, val interface{})
 	return q
 }
 
-func (q *TableQuery) ResetFilter() *TableQuery {
+func (q *tableQuery) ResetFilter() TableQuery {
 	q.Filter = q.Filter[:0]
 	return q
 }
 
-func (q *TableQuery) WithLimit(limit int) *TableQuery {
+func (q *tableQuery) WithLimit(limit int) TableQuery {
 	q.Limit = limit
 	return q
 }
 
-func (q *TableQuery) WithColumns(cols ...string) *TableQuery {
+func (q *tableQuery) WithColumns(cols ...string) TableQuery {
 	q.Columns = cols
 	return q
 }
 
-func (q *TableQuery) WithOrder(order OrderType) *TableQuery {
+func (q *tableQuery) WithOrder(order OrderType) TableQuery {
 	q.Order = order
 	return q
 }
 
-func (q *TableQuery) WithDesc() *TableQuery {
+func (q *tableQuery) WithDesc() TableQuery {
 	q.Order = OrderDesc
 	return q
 }
 
-func (q *TableQuery) WithVerbose() *TableQuery {
+func (q *tableQuery) WithVerbose() TableQuery {
 	q.Verbose = true
 	return q
 }
 
-func (q *TableQuery) WithQuiet() *TableQuery {
+func (q *tableQuery) WithQuiet() TableQuery {
 	q.Verbose = false
 	return q
 }
 
-func (q *TableQuery) WithFormat(format FormatType) *TableQuery {
+func (q *tableQuery) WithFormat(format FormatType) TableQuery {
 	q.Format = format
 	return q
 }
 
-func (p TableQuery) Check() error {
+func (p tableQuery) Check() error {
 	if err := p.Params.Check(); err != nil {
 		return err
 	}
@@ -165,7 +180,7 @@ func (p TableQuery) Check() error {
 	return nil
 }
 
-func (p TableQuery) Url() string {
+func (p tableQuery) Url() string {
 	if p.Cursor > 0 {
 		p.Params.Query.Set("cursor", strconv.FormatUint(p.Cursor, 10))
 	}

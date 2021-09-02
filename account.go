@@ -381,7 +381,7 @@ func (p AccountParams) WithMeta() AccountParams {
 }
 
 type AccountQuery struct {
-	TableQuery
+	tableQuery
 }
 
 func (c *Client) NewAccountQuery() AccountQuery {
@@ -389,7 +389,7 @@ func (c *Client) NewAccountQuery() AccountQuery {
 	if err != nil {
 		panic(err)
 	}
-	q := TableQuery{
+	q := tableQuery{
 		client:  c,
 		Params:  c.params.Copy(),
 		Table:   "account",
@@ -406,7 +406,7 @@ func (q AccountQuery) Run(ctx context.Context) (*AccountList, error) {
 	result := &AccountList{
 		columns: q.Columns,
 	}
-	if err := q.client.QueryTable(ctx, q.TableQuery, result); err != nil {
+	if err := q.client.QueryTable(ctx, &q.tableQuery, result); err != nil {
 		return nil, err
 	}
 	return result, nil

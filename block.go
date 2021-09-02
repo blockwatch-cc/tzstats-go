@@ -335,7 +335,7 @@ func (b *Block) UnmarshalJSONBrief(data []byte) error {
 }
 
 type BlockQuery struct {
-	TableQuery
+	tableQuery
 }
 
 func (c *Client) NewBlockQuery() BlockQuery {
@@ -343,7 +343,7 @@ func (c *Client) NewBlockQuery() BlockQuery {
 	if err != nil {
 		panic(err)
 	}
-	q := TableQuery{
+	q := tableQuery{
 		client:  c,
 		Params:  c.params.Copy(),
 		Table:   "block",
@@ -360,7 +360,7 @@ func (q BlockQuery) Run(ctx context.Context) (*BlockList, error) {
 	result := &BlockList{
 		columns: q.Columns,
 	}
-	if err := q.client.QueryTable(ctx, q.TableQuery, result); err != nil {
+	if err := q.client.QueryTable(ctx, &q.tableQuery, result); err != nil {
 		return nil, err
 	}
 	return result, nil

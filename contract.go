@@ -376,7 +376,7 @@ func (p ContractParams) WithCollapse() ContractParams {
 }
 
 type ContractQuery struct {
-	TableQuery
+	tableQuery
 }
 
 func (c *Client) NewContractQuery() ContractQuery {
@@ -384,7 +384,7 @@ func (c *Client) NewContractQuery() ContractQuery {
 	if err != nil {
 		panic(err)
 	}
-	q := TableQuery{
+	q := tableQuery{
 		client:  c,
 		Params:  c.params.Copy(),
 		Table:   "contract",
@@ -401,7 +401,7 @@ func (q ContractQuery) Run(ctx context.Context) (*ContractList, error) {
 	result := &ContractList{
 		columns: q.Columns,
 	}
-	if err := q.client.QueryTable(ctx, q.TableQuery, result); err != nil {
+	if err := q.client.QueryTable(ctx, &q.tableQuery, result); err != nil {
 		return nil, err
 	}
 	return result, nil

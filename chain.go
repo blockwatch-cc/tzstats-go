@@ -213,7 +213,7 @@ func (c *Chain) UnmarshalJSONBrief(data []byte) error {
 }
 
 type ChainQuery struct {
-	TableQuery
+	tableQuery
 }
 
 func (c *Client) NewChainQuery() ChainQuery {
@@ -221,7 +221,7 @@ func (c *Client) NewChainQuery() ChainQuery {
 	if err != nil {
 		panic(err)
 	}
-	q := TableQuery{
+	q := tableQuery{
 		client:  c,
 		Params:  c.params.Copy(),
 		Table:   "chain",
@@ -238,7 +238,7 @@ func (q ChainQuery) Run(ctx context.Context) (*ChainList, error) {
 	result := &ChainList{
 		columns: q.Columns,
 	}
-	if err := q.client.QueryTable(ctx, q.TableQuery, result); err != nil {
+	if err := q.client.QueryTable(ctx, &q.tableQuery, result); err != nil {
 		return nil, err
 	}
 	return result, nil

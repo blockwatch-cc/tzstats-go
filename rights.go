@@ -165,7 +165,7 @@ func (r *Right) UnmarshalJSONBrief(data []byte) error {
 }
 
 type RightsQuery struct {
-	TableQuery
+	tableQuery
 }
 
 func (c *Client) NewRightsQuery() RightsQuery {
@@ -173,7 +173,7 @@ func (c *Client) NewRightsQuery() RightsQuery {
 	if err != nil {
 		panic(err)
 	}
-	q := TableQuery{
+	q := tableQuery{
 		client:  c,
 		Params:  c.params.Copy(),
 		Table:   "rights",
@@ -190,7 +190,7 @@ func (q RightsQuery) Run(ctx context.Context) (*RightsList, error) {
 	result := &RightsList{
 		columns: q.Columns,
 	}
-	if err := q.client.QueryTable(ctx, q.TableQuery, result); err != nil {
+	if err := q.client.QueryTable(ctx, &q.tableQuery, result); err != nil {
 		return nil, err
 	}
 	return result, nil

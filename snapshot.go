@@ -160,7 +160,7 @@ func (s *Snapshot) UnmarshalJSONBrief(data []byte) error {
 }
 
 type SnapshotQuery struct {
-	TableQuery
+	tableQuery
 }
 
 func (c *Client) NewSnapshotQuery() SnapshotQuery {
@@ -168,7 +168,7 @@ func (c *Client) NewSnapshotQuery() SnapshotQuery {
 	if err != nil {
 		panic(err)
 	}
-	q := TableQuery{
+	q := tableQuery{
 		client:  c,
 		Params:  c.params.Copy(),
 		Table:   "snapshot",
@@ -185,7 +185,7 @@ func (q SnapshotQuery) Run(ctx context.Context) (*SnapshotList, error) {
 	result := &SnapshotList{
 		columns: q.Columns,
 	}
-	if err := q.client.QueryTable(ctx, q.TableQuery, result); err != nil {
+	if err := q.client.QueryTable(ctx, &q.tableQuery, result); err != nil {
 		return nil, err
 	}
 	return result, nil
