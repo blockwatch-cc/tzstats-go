@@ -1,6 +1,6 @@
 ## tzstats-go – Official Go SDK for the TzStats API
 
-The official Blockwatch Go client library for TzStats. This SDK is free to use under a permissive license and works with the most recent version of the TzStats API v010-2021-07-24. API documentation can be found [here](https://tzstats.com/docs/api).
+The official Blockwatch Go client library for TzStats. This SDK is free to use under a permissive license and works with the most recent version of the TzStats API v010-2021-09-04. API documentation can be found [here](https://tzstats.com/docs/api).
 
 We will maintain this SDK on a regular basis to keep track of changes to the Tezos network and add new API features as they are released. Open-source support is provided through issues in this Github repository. If you are looking for commercial support, please contact us at licensing@blockwatch.cc.
 
@@ -12,7 +12,7 @@ As long as TzStats-Go is in beta status we will use major version 0.x. Once inte
 
 Supported API and Tezos versions
 
-- **v0.10**: API release v010-2021-07-24, Tezos Granada
+- **v0.10**: API release v010-2021-09-04, Tezos Granada
 - **v0.9**: API release v009-2021-04-16, Tezos Florence
 
 ### Installation

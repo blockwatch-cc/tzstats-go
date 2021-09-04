@@ -23,6 +23,8 @@ type BigmapValue struct {
 	KeyHash   tezos.ExprHash  `json:"key_hash"`
 	Meta      *BigmapMeta     `json:"meta,omitempty"`
 	Value     interface{}     `json:"value,omitempty"`
+	Height    int64           `json:"height"`
+	Time      time.Time       `json:"time"`
 	KeyPrim   *micheline.Prim `json:"key_prim,omitempty"`
 	ValuePrim *micheline.Prim `json:"value_prim,omitempty"`
 }
@@ -82,6 +84,8 @@ func (v BigmapValue) Unmarshal(val interface{}) error {
 type BigmapValueRow struct {
 	RowId    uint64         `json:"row_id"`
 	BigmapId int64          `json:"bigmap_id"`
+	Height   int64          `json:"height"`
+	Time     time.Time      `json:"time"`
 	KeyId    uint64         `json:"key_id"`
 	KeyHash  tezos.ExprHash `json:"key_hash,omitempty"`
 	Key      string         `json:"key,omitempty"`
@@ -195,6 +199,14 @@ func (b *BigmapValueRow) UnmarshalJSONBrief(data []byte) error {
 			br.Key = f.(string)
 		case "value":
 			br.Value = f.(string)
+		case "height":
+			br.Height, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "time":
+			var ts int64
+			ts, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+			if err == nil {
+				br.Time = time.Unix(0, ts*1000000).UTC()
+			}
 		}
 		if err != nil {
 			return err

@@ -64,7 +64,8 @@ type Op struct {
 	BranchHeight int64               `json:"branch_height"`
 	BranchDepth  int64               `json:"branch_depth"`
 	BranchHash   tezos.BlockHash     `json:"branch_hash"`
-	Entrypoint   int                 `json:"entrypoint_id"`
+	EntrypointId int                 `json:"entrypoint_id,omitempty"`
+	Entrypoint   string              `json:"entrypoint,omitempty"`
 	IsOrphan     bool                `json:"is_orphan,omitempty"`
 	IsBatch      bool                `json:"is_batch,omitempty"`
 	IsSapling    bool                `json:"is_sapling,omitempty"`
@@ -445,8 +446,10 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 			op.BranchHeight, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "branch_depth":
 			op.BranchDepth, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "entrypoint":
+			op.Entrypoint = f.(string)
 		case "entrypoint_id":
-			op.Entrypoint, err = strconv.Atoi(f.(json.Number).String())
+			op.EntrypointId, err = strconv.Atoi(f.(json.Number).String())
 		}
 		if err != nil {
 			return err
