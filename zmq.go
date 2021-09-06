@@ -74,12 +74,22 @@ func (m *ZmqMessage) DecodeBlock() (*Block, error) {
 	return b, nil
 }
 
+func (m *ZmqMessage) DecodeStatus() (*Status, error) {
+	s := new(Status).WithColumns(ZmqStatusColumns...)
+	if err := json.Unmarshal(m.body, s); err != nil {
+		return nil, err
+	}
+	return s, nil
+}
+
 func zmqFields(topic string) []string {
 	switch topic {
 	case "raw_block", "raw_block/rollback":
 		return ZmqRawBlockColumns
 	case "raw_op", "raw_op/rollback":
 		return ZmqRawOpColumns
+	case "status":
+		return ZmqStatusColumns
 	default:
 		return nil
 	}
@@ -145,6 +155,7 @@ var ZmqRawBlockColumns = []string{
 	"predecessor",
 	"lb_esc_vote",
 	"lb_esc_ema",
+	"protocol",
 }
 
 var ZmqRawOpColumns = []string{
@@ -199,4 +210,11 @@ var ZmqRawOpColumns = []string{
 	"is_batch",
 	"is_sapling",
 	"block",
+}
+
+var ZmqStatusColumns = []string{
+	"status",
+	"blocks",
+	"indexed",
+	"progress",
 }

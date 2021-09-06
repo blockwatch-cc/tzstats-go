@@ -75,10 +75,27 @@ type Block struct {
 	PctAccountReuse     float64                `json:"pct_account_reuse"`
 	LbEscapeVote        bool                   `json:"lb_esc_vote"`
 	LbEscapeEma         int64                  `json:"lb_esc_ema"`
+	Protocol            tezos.ProtocolHash     `json:"protocol"`
 	Metadata            map[string]Metadata    `json:"metadata,omitempty,notable"`
 	Rights              []Right                `json:"rights,omitempty,notable"`
 	Ops                 []*Op                  `json:"ops,omitempty,notable"`
 	columns             []string               `json:"-"`
+}
+
+type Head struct {
+	Hash       tezos.BlockHash `json:"hash"`
+	ParentHash tezos.BlockHash `json:"predecessor"`
+	Height     int64           `json:"height"`
+	Cycle      int64           `json:"cycle"`
+	Timestamp  time.Time       `json:"time"`
+	Baker      tezos.Address   `json:"baker"`
+	Priority   int             `json:"priority"`
+	Nonce      string          `json:"nonce"`
+	NOps       int             `json:"n_ops"`
+	Volume     float64         `json:"volume"`
+	Fee        float64         `json:"fee"`
+	Reward     float64         `json:"reward"`
+	GasUsed    int64           `json:"gas_used"`
 }
 
 type BlockId struct {
@@ -118,6 +135,28 @@ func (b *Block) BlockId() BlockId {
 		Height: b.Height,
 		Hash:   b.Hash.Clone(),
 		Time:   b.Timestamp,
+	}
+}
+
+func (b *Block) Head() *Head {
+	var ph tezos.BlockHash
+	if b.ParentHash != nil {
+		ph = b.ParentHash.Clone()
+	}
+	return &Head{
+		Hash:       b.Hash,
+		ParentHash: ph,
+		Height:     b.Height,
+		Cycle:      b.Cycle,
+		Timestamp:  b.Timestamp,
+		Baker:      b.Baker,
+		Priority:   b.Priority,
+		Nonce:      b.Nonce,
+		NOps:       b.NOps,
+		Volume:     b.Volume,
+		Fee:        b.Fee,
+		Reward:     b.Reward,
+		GasUsed:    b.GasUsed,
 	}
 }
 
