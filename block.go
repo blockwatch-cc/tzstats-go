@@ -463,6 +463,15 @@ func (c *Client) GetBlock(ctx context.Context, hash tezos.BlockHash, params Bloc
 	return b, nil
 }
 
+func (c *Client) GetHead(ctx context.Context, params BlockParams) (*Block, error) {
+	b := &Block{}
+	u := params.AppendQuery("/explorer/block/head")
+	if err := c.get(ctx, u, nil, b); err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
 func (c *Client) GetBlockHeight(ctx context.Context, height int64, params BlockParams) (*Block, error) {
 	b := &Block{}
 	u := params.AppendQuery(fmt.Sprintf("/explorer/block/%d", height))
