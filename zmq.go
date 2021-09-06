@@ -45,12 +45,12 @@ func (m *ZmqMessage) DecodeOpWithScript(ctx context.Context, c *Client) (*Op, er
 	o := new(Op).WithColumns(ZmqRawOpColumns...)
 
 	// we may need contract scripts
-	if is, ok := getTableColumn(m.body, ZmqRawOpColumns, "is_contract"); ok && is == "1" {
-		recv, ok := getTableColumn(m.body, ZmqRawOpColumns, "receiver")
+	if is, ok := m.GetField("is_contract"); ok && is == "1" {
+		recv, ok := m.GetField("receiver")
 		if ok && recv != "" && recv != "null" {
 			addr, err := tezos.ParseAddress(recv)
 			if err != nil {
-				return nil, fmt.Errorf("decode: invalid receiver address %s: %v", recv, err)
+				return nil, fmt.Errorf("decode: invalid receiver address %s: %v, %#v", recv, err, string(m.body))
 			}
 			// load contract type info (required for decoding storage/param data)
 			script, err := c.loadCachedContractScript(ctx, addr)

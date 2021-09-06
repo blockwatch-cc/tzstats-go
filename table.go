@@ -233,10 +233,11 @@ func getTableColumn(data []byte, columns []string, name string) (string, bool) {
 	}
 
 	var (
-		skip   bool
-		escape bool
-		field  int
-		res    []byte
+		skipJson int
+		skip     bool
+		escape   bool
+		field    int
+		res      []byte
 	)
 	for _, v := range data {
 		if field > idx {
@@ -250,12 +251,18 @@ func getTableColumn(data []byte, columns []string, name string) (string, bool) {
 			continue
 		}
 		switch v {
+		case '[', '{':
+			skipJson++
+		case ']', '}':
+			skipJson--
+		}
+		switch v {
 		case '\\':
 			escape = true
 		case '"':
 			skip = !skip
 		case ',':
-			if !skip {
+			if !skip && skipJson == 0 {
 				field++
 			}
 		}
