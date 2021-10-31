@@ -21,7 +21,7 @@ type Op struct {
 	RowId        uint64              `json:"row_id"`
 	Hash         tezos.OpHash        `json:"hash"`
 	Type         tezos.OpType        `json:"type"`
-	BlockHash    tezos.BlockHash     `json:"block_hash"`
+	BlockHash    tezos.BlockHash     `json:"block"`
 	Timestamp    time.Time           `json:"time"`
 	Height       int64               `json:"height"`
 	Cycle        int64               `json:"cycle"`
@@ -61,9 +61,9 @@ type Op struct {
 	BigmapDiff   []BigmapUpdate      `json:"big_map_diff,omitempty"`
 	Errors       json.RawMessage     `json:"errors,omitempty"`
 	TDD          float64             `json:"days_destroyed"`
-	BranchHeight int64               `json:"branch_height"`
-	BranchDepth  int64               `json:"branch_depth"`
-	BranchHash   tezos.BlockHash     `json:"branch_hash"`
+	BranchHeight int64               `json:"branch_height,omitempty"`
+	BranchDepth  int64               `json:"branch_depth,omitempty"`
+	BranchHash   *tezos.BlockHash    `json:"branch_hash,omitempty"`
 	EntrypointId int                 `json:"entrypoint_id,omitempty"`
 	Entrypoint   string              `json:"entrypoint,omitempty"`
 	IsOrphan     bool                `json:"is_orphan,omitempty"`
@@ -248,7 +248,7 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 			if err == nil {
 				op.Timestamp = time.Unix(0, ts*1000000).UTC()
 			}
-		case "block_hash":
+		case "block":
 			op.BlockHash, err = tezos.ParseBlockHash(f.(string))
 		case "height":
 			op.Height, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
@@ -441,7 +441,11 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 		case "days_destroyed":
 			op.TDD, err = f.(json.Number).Float64()
 		case "branch_hash":
-			op.BranchHash, err = tezos.ParseBlockHash(f.(string))
+			var bh tezos.BlockHash
+			bh, err = tezos.ParseBlockHash(f.(string))
+			if err == nil {
+				op.BranchHash = &bh
+			}
 		case "branch_height":
 			op.BranchHeight, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "branch_depth":
