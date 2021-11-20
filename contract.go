@@ -217,6 +217,7 @@ type ContractParameters struct {
 type ContractScript struct {
 	StorageType micheline.Typedef     `json:"storage_type"`
 	Entrypoints micheline.Entrypoints `json:"entrypoints"`
+	Views       micheline.Views       `json:"views,omitempty"`
 	Bigmaps     map[string]int64      `json:"bigmaps,omitempty"`
 	Script      *micheline.Script     `json:"script,omitempty"`
 }

@@ -156,6 +156,8 @@ var ZmqRawBlockColumns = []string{
 	"lb_esc_vote",
 	"lb_esc_ema",
 	"protocol",
+	"n_contract_calls",
+	"n_register_constant",
 }
 
 var ZmqRawOpColumns = []string{

@@ -25,6 +25,8 @@ type Tip struct {
 	Cycle              int64             `json:"cycle"`
 	TotalAccounts      int64             `json:"total_accounts"`
 	FundedAccounts     int64             `json:"funded_accounts"`
+	DustAccounts       int64             `json:"dust_accounts"`
+	DustDelegators     int64             `json:"dust_delegators"`
 	TotalOps           int64             `json:"total_ops"`
 	Delegators         int64             `json:"delegators"`
 	Delegates          int64             `json:"delegates"`
@@ -220,7 +222,9 @@ type Supply struct {
 	BurnedDoubleBaking  float64   `json:"burned_double_baking"`
 	BurnedDoubleEndorse float64   `json:"burned_double_endorse"`
 	BurnedOrigination   float64   `json:"burned_origination"`
-	BurnedImplicit      float64   `json:"burned_implicit"`
+	BurnedAllocation    float64   `json:"burned_allocation"`
+	BurnedStorage       float64   `json:"burned_storage"`
+	BurnedExplicit      float64   `json:"burned_explicit"`
 	BurnedSeedMiss      float64   `json:"burned_seed_miss"`
 	Frozen              float64   `json:"frozen"`
 	FrozenDeposits      float64   `json:"frozen_deposits"`
