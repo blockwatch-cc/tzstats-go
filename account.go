@@ -443,7 +443,7 @@ func (c *Client) GetAccountContracts(ctx context.Context, addr tezos.Address, pa
 
 func (c *Client) GetAccountOps(ctx context.Context, addr tezos.Address, params OpParams) ([]*Op, error) {
 	ops := make([]*Op, 0)
-	u := params.AppendQuery(fmt.Sprintf("/explorer/contract/%s/operations", addr))
+	u := params.AppendQuery(fmt.Sprintf("/explorer/account/%s/operations", addr))
 	if err := c.get(ctx, u, nil, &ops); err != nil {
 		return nil, err
 	}
