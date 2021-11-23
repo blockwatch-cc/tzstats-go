@@ -39,6 +39,7 @@ type Block struct {
 	NOps                int                    `json:"n_ops"`
 	NOpsFailed          int                    `json:"n_ops_failed"`
 	NOpsContract        int                    `json:"n_ops_contract"`
+	NContractCalls      int                    `json:"n_contract_calls"`
 	NOpsImplicit        int                    `json:"n_ops_implicit"`
 	NTx                 int                    `json:"n_tx"`
 	NActivation         int                    `json:"n_activation"`
@@ -51,6 +52,7 @@ type Block struct {
 	NOrigination        int                    `json:"n_origination"`
 	NProposal           int                    `json:"n_proposal"`
 	NBallot             int                    `json:"n_ballot"`
+	NRegister           int                    `json:"n_register_constant"`
 	Volume              float64                `json:"volume"`
 	Fee                 float64                `json:"fee"`
 	Reward              float64                `json:"reward"`
@@ -290,6 +292,8 @@ func (b *Block) UnmarshalJSONBrief(data []byte) error {
 			block.NOpsFailed, err = strconv.Atoi(f.(json.Number).String())
 		case "n_ops_contract":
 			block.NOpsContract, err = strconv.Atoi(f.(json.Number).String())
+		case "n_contract_calls":
+			block.NContractCalls, err = strconv.Atoi(f.(json.Number).String())
 		case "n_ops_implicit":
 			block.NOpsImplicit, err = strconv.Atoi(f.(json.Number).String())
 		case "n_tx":
@@ -314,6 +318,8 @@ func (b *Block) UnmarshalJSONBrief(data []byte) error {
 			block.NProposal, err = strconv.Atoi(f.(json.Number).String())
 		case "n_ballot":
 			block.NBallot, err = strconv.Atoi(f.(json.Number).String())
+		case "n_register_constant":
+			block.NRegister, err = strconv.Atoi(f.(json.Number).String())
 		case "volume":
 			block.Volume, err = strconv.ParseFloat(f.(json.Number).String(), 4)
 		case "fee":

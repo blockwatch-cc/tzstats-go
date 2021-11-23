@@ -17,11 +17,10 @@ type Chain struct {
 	Cycle              int64  `json:"cycle"`
 	Timestamp          int64  `json:"time"`
 	TotalAccounts      int64  `json:"total_accounts"`
-	TotalImplicit      int64  `json:"total_implicit"`
-	TotalManaged       int64  `json:"total_managed"`
 	TotalContracts     int64  `json:"total_contracts"`
 	TotalOps           int64  `json:"total_ops"`
 	TotalContractOps   int64  `json:"total_contract_ops"`
+	TotalContractCalls int64  `json:"total_contract_calls"`
 	TotalActivations   int64  `json:"total_activations"`
 	TotalSeedNonces    int64  `json:"total_seed_nonce_revelations"`
 	TotalEndorsements  int64  `json:"total_endorsements"`
@@ -33,15 +32,16 @@ type Chain struct {
 	TotalTransactions  int64  `json:"total_transactions"`
 	TotalProposals     int64  `json:"total_proposals"`
 	TotalBallots       int64  `json:"total_ballots"`
+	TotalConstants     int64  `json:"total_constants"`
 	TotalStorageBytes  int64  `json:"total_storage_bytes"`
 	TotalPaidBytes     int64  `json:"total_paid_bytes"`
-	TotalUsedBytes     int64  `json:"total_used_bytes"`
-	TotalOrphans       int64  `json:"total_orphans"`
 	FundedAccounts     int64  `json:"funded_accounts"`
+	DustAccounts       int64  `json:"dust_accounts"`
 	UnclaimedAccounts  int64  `json:"unclaimed_accounts"`
 	TotalDelegators    int64  `json:"total_delegators"`
 	ActiveDelegators   int64  `json:"active_delegators"`
 	InactiveDelegators int64  `json:"inactive_delegators"`
+	DustDelegators     int64  `json:"dust_delegators"`
 	TotalDelegates     int64  `json:"total_delegates"`
 	ActiveDelegates    int64  `json:"active_delegates"`
 	InactiveDelegates  int64  `json:"inactive_delegates"`
@@ -135,16 +135,14 @@ func (c *Chain) UnmarshalJSONBrief(data []byte) error {
 			cc.Timestamp, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "total_accounts":
 			cc.TotalAccounts, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "total_implicit":
-			cc.TotalImplicit, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "total_managed":
-			cc.TotalManaged, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "total_contracts":
 			cc.TotalContracts, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "total_ops":
 			cc.TotalOps, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "total_contract_ops":
 			cc.TotalContractOps, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "total_contract_calls":
+			cc.TotalContractCalls, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "total_activations":
 			cc.TotalActivations, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "total_seed_nonce_revelations":
@@ -167,16 +165,16 @@ func (c *Chain) UnmarshalJSONBrief(data []byte) error {
 			cc.TotalProposals, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "total_ballots":
 			cc.TotalBallots, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "total_constants":
+			cc.TotalConstants, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "total_storage_bytes":
 			cc.TotalStorageBytes, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "total_paid_bytes":
 			cc.TotalPaidBytes, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "total_used_bytes":
-			cc.TotalUsedBytes, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "total_orphans":
-			cc.TotalOrphans, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "funded_accounts":
 			cc.FundedAccounts, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "dust_accounts":
+			cc.DustAccounts, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "unclaimed_accounts":
 			cc.UnclaimedAccounts, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "total_delegators":
@@ -185,6 +183,8 @@ func (c *Chain) UnmarshalJSONBrief(data []byte) error {
 			cc.ActiveDelegators, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "inactive_delegators":
 			cc.InactiveDelegators, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "dust_delegators":
+			cc.DustDelegators, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "total_delegates":
 			cc.TotalDelegates, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "active_delegates":
