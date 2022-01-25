@@ -27,7 +27,6 @@ type Block struct {
 	Timestamp        time.Time              `json:"time"`
 	Solvetime        int                    `json:"solvetime"`
 	Version          int                    `json:"version"`
-	Validation       int                    `json:"validation_pass"`
 	Fitness          uint64                 `json:"fitness"`
 	Priority         int                    `json:"priority"`
 	Nonce            string                 `json:"nonce"`
@@ -57,9 +56,6 @@ type Block struct {
 	Fee              float64                `json:"fee"`
 	Reward           float64                `json:"reward"`
 	Deposit          float64                `json:"deposit"`
-	UnfrozenFees     float64                `json:"unfrozen_fees"`
-	UnfrozenRewards  float64                `json:"unfrozen_rewards"`
-	UnfrozenDeposits float64                `json:"unfrozen_deposits"`
 	ActivatedSupply  float64                `json:"activated_supply"`
 	BurnedSupply     float64                `json:"burned_supply"`
 	SeenAccounts     int                    `json:"n_accounts"`
@@ -268,8 +264,6 @@ func (b *Block) UnmarshalJSONBrief(data []byte) error {
 			block.Solvetime, err = strconv.Atoi(f.(json.Number).String())
 		case "version":
 			block.Version, err = strconv.Atoi(f.(json.Number).String())
-		case "validation_pass":
-			block.Validation, err = strconv.Atoi(f.(json.Number).String())
 		case "fitness":
 			block.Fitness, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
 		case "priority":
@@ -326,12 +320,6 @@ func (b *Block) UnmarshalJSONBrief(data []byte) error {
 			block.Reward, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "deposit":
 			block.Deposit, err = strconv.ParseFloat(f.(json.Number).String(), 64)
-		case "unfrozen_fees":
-			block.UnfrozenFees, err = strconv.ParseFloat(f.(json.Number).String(), 64)
-		case "unfrozen_rewards":
-			block.UnfrozenRewards, err = strconv.ParseFloat(f.(json.Number).String(), 64)
-		case "unfrozen_deposits":
-			block.UnfrozenDeposits, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "activated_supply":
 			block.ActivatedSupply, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "burned_supply":
