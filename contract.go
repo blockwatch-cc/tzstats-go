@@ -25,8 +25,8 @@ type Contract struct {
 	Address       tezos.Address       `json:"address"`
 	CreatorId     uint64              `json:"creator_id"`
 	Creator       tezos.Address       `json:"creator"`
-	DelegateId    uint64              `json:"delegate_id"`
-	Delegate      tezos.Address       `json:"delegate"`
+	DelegateId    uint64              `json:"delegate_id,notable"`
+	Delegate      tezos.Address       `json:"delegate,notable"`
 	FirstSeen     int64               `json:"first_seen"`
 	LastSeen      int64               `json:"last_seen"`
 	FirstSeenTime time.Time           `json:"first_seen_time"`
@@ -40,10 +40,10 @@ type Contract struct {
 	Features      []string            `json:"features"`
 	Interfaces    []string            `json:"interfaces"`
 	CallStats     map[string]int      `json:"call_stats"`
-	Bigmaps       map[string]int64    `json:"bigmaps"`
-	NOps          int                 `json:"n_ops"`
-	NOpsFailed    int                 `json:"n_ops_failed"`
-	Metadata      map[string]Metadata `json:"metadata"`
+	Bigmaps       map[string]int64    `json:"bigmaps,omitempty,notable"`
+	NOps          int                 `json:"n_ops,omitempty,notable"`
+	NOpsFailed    int                 `json:"n_ops_failed,omitempty,notable"`
+	Metadata      map[string]Metadata `json:"metadata,omitempty,notable"`
 
 	columns []string `json:"-"`
 }
@@ -392,7 +392,7 @@ func (c *Client) NewContractQuery() ContractQuery {
 		Format:  FormatJSON,
 		Limit:   DefaultLimit,
 		Order:   OrderAsc,
-		Columns: tinfo.Aliases(),
+		Columns: tinfo.FilteredAliases("notable"),
 		Filter:  make(FilterList, 0),
 	}
 	return ContractQuery{q}
