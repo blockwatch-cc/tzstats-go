@@ -233,7 +233,7 @@ func getTableColumn(data []byte, columns []string, name string) (string, bool) {
 	}
 
 	var (
-		skipJson int
+		skipJson int = -1
 		skip     bool
 		escape   bool
 		field    int

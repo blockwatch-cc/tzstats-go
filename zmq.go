@@ -22,7 +22,7 @@ func NewZmqMessage(topic, body []byte) *ZmqMessage {
 }
 
 func (m *ZmqMessage) GetField(name string) (string, bool) {
-	return getTableColumn(m.body[1:len(m.body)-1], zmqFields(m.topic), name)
+	return getTableColumn(m.body, zmqFields(m.topic), name)
 }
 
 func (m *ZmqMessage) DecodeOpHash() (tezos.OpHash, error) {
