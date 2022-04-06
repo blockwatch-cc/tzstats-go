@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Blockwatch Data Inc.
+// Copyright (c) 2020-2022 Blockwatch Data Inc.
 // Author: alex@blockwatch.cc
 
 package tzstats
@@ -14,33 +14,34 @@ import (
 )
 
 type Tip struct {
-	Name               string            `json:"name"`
-	Network            string            `json:"network"`
-	Symbol             string            `json:"symbol"`
-	ChainId            tezos.ChainIdHash `json:"chain_id"`
-	GenesisTime        time.Time         `json:"genesis_time"`
-	BestHash           tezos.BlockHash   `json:"block_hash"`
-	Timestamp          time.Time         `json:"timestamp"`
-	Height             int64             `json:"height"`
-	Cycle              int64             `json:"cycle"`
-	TotalAccounts      int64             `json:"total_accounts"`
-	FundedAccounts     int64             `json:"funded_accounts"`
-	DustAccounts       int64             `json:"dust_accounts"`
-	DustDelegators     int64             `json:"dust_delegators"`
-	TotalOps           int64             `json:"total_ops"`
-	Delegators         int64             `json:"delegators"`
-	Delegates          int64             `json:"delegates"`
-	Rolls              int64             `json:"rolls"`
-	RollOwners         int64             `json:"roll_owners"`
-	NewAccounts30d     int64             `json:"new_accounts_30d"`
-	ClearedAccounts30d int64             `json:"cleared_accounts_30d"`
-	FundedAccounts30d  int64             `json:"funded_accounts_30d"`
-	Inflation1Y        float64           `json:"inflation_1y"`
-	InflationRate1Y    float64           `json:"inflation_rate_1y"`
-	Health             int               `json:"health"`
-	Supply             *Supply           `json:"supply"`
-	Deployments        []Deployment      `json:"deployments"`
-	Status             Status            `json:"status"`
+	Name               string             `json:"name"`
+	Network            string             `json:"network"`
+	Symbol             string             `json:"symbol"`
+	ChainId            tezos.ChainIdHash  `json:"chain_id"`
+	GenesisTime        time.Time          `json:"genesis_time"`
+	Hash               tezos.BlockHash    `json:"block_hash"`
+	Height             int64              `json:"height"`
+	Cycle              int64              `json:"cycle"`
+	Timestamp          time.Time          `json:"timestamp"`
+	Protocol           tezos.ProtocolHash `json:"protocol"`
+	TotalAccounts      int64              `json:"total_accounts"`
+	TotalContracts     int64              `json:"total_contracts"`
+	FundedAccounts     int64              `json:"funded_accounts"`
+	DustAccounts       int64              `json:"dust_accounts"`
+	DustDelegators     int64              `json:"dust_delegators"`
+	TotalOps           int64              `json:"total_ops"`
+	Delegators         int64              `json:"delegators"`
+	Bakers             int64              `json:"bakers"`
+	Rolls              int64              `json:"rolls"`
+	RollOwners         int64              `json:"roll_owners"`
+	NewAccounts30d     int64              `json:"new_accounts_30d"`
+	ClearedAccounts30d int64              `json:"cleared_accounts_30d"`
+	FundedAccounts30d  int64              `json:"funded_accounts_30d"`
+	Inflation1Y        float64            `json:"inflation_1y"`
+	InflationRate1Y    float64            `json:"inflation_rate_1y"`
+	Health             int                `json:"health"`
+	Supply             *Supply            `json:"supply"`
+	Status             Status             `json:"status"`
 }
 
 type Deployment struct {
@@ -51,10 +52,11 @@ type Deployment struct {
 }
 
 type Status struct {
-	Status   string  `json:"status"` // loading, connecting, stopping, stopped, waiting, syncing, synced, failed
-	Blocks   int64   `json:"blocks"`
-	Indexed  int64   `json:"indexed"`
-	Progress float64 `json:"progress"`
+	Status    string  `json:"status"` // loading, connecting, stopping, stopped, waiting, syncing, synced, failed
+	Blocks    int64   `json:"blocks"`
+	Finalized int64   `json:"finalized"`
+	Indexed   int64   `json:"indexed"`
+	Progress  float64 `json:"progress"`
 
 	columns []string
 }
@@ -126,20 +128,32 @@ func (c *Client) GetTip(ctx context.Context) (*Tip, error) {
 	return tip, nil
 }
 
+func (c *Client) ListProtocols(ctx context.Context) ([]Deployment, error) {
+	protos := make([]Deployment, 0)
+	if err := c.get(ctx, "/explorer/protocols", nil, &protos); err != nil {
+		return nil, err
+	}
+	return protos, nil
+}
+
 type BlockchainConfig struct {
-	Name                              string     `json:"name"`
-	Network                           string     `json:"network"`
-	Symbol                            string     `json:"symbol"`
-	ChainId                           string     `json:"chain_id"`
-	Version                           int        `json:"version"`
-	Deployment                        int        `json:"deployment"`
-	Protocol                          string     `json:"protocol"`
-	StartHeight                       int64      `json:"start_height"`
-	EndHeight                         int64      `json:"end_height"`
-	NoRewardCycles                    int64      `json:"no_reward_cycles"`
-	SecurityDepositRampUpCycles       int64      `json:"security_deposit_ramp_up_cycles"`
-	Decimals                          int        `json:"decimals"`
-	Token                             int64      `json:"units"`
+	Name                        string `json:"name"`
+	Network                     string `json:"network"`
+	Symbol                      string `json:"symbol"`
+	ChainId                     string `json:"chain_id"`
+	Version                     int    `json:"version"`
+	Deployment                  int    `json:"deployment"`
+	Protocol                    string `json:"protocol"`
+	StartHeight                 int64  `json:"start_height"`
+	EndHeight                   int64  `json:"end_height"`
+	NoRewardCycles              int64  `json:"no_reward_cycles"`
+	SecurityDepositRampUpCycles int64  `json:"security_deposit_ramp_up_cycles"`
+	Decimals                    int    `json:"decimals"`
+	Token                       int64  `json:"units"`
+
+	NumVotingPeriods int   `json:"num_voting_periods"`
+	MaxOperationsTTL int64 `json:"max_operations_ttl"`
+
 	BlockReward                       float64    `json:"block_rewards"`
 	BlockSecurityDeposit              float64    `json:"block_security_deposit"`
 	BlocksPerCommitment               int64      `json:"blocks_per_commitment"`
@@ -173,11 +187,29 @@ type BlockchainConfig struct {
 	BlockRewardV6                     [2]float64 `json:"block_rewards_v6"`
 	EndorsementRewardV6               [2]float64 `json:"endorsement_rewards_v6"`
 	MaxAnonOpsPerBlock                int        `json:"max_anon_ops_per_block"`
-	NumVotingPeriods                  int        `json:"num_voting_periods"`
 	LiquidityBakingEscapeEmaThreshold int64      `json:"liquidity_baking_escape_ema_threshold"`
 	LiquidityBakingSubsidy            int64      `json:"liquidity_baking_subsidy"`
 	LiquidityBakingSunsetLevel        int64      `json:"liquidity_baking_sunset_level"`
 	MinimalBlockDelay                 int        `json:"minimal_block_delay"`
+
+	// New in Hangzhou v011
+	MaxMichelineNodeCount          int `json:"max_micheline_node_count,omitempty"`
+	MaxMichelineBytesLimit         int `json:"max_micheline_bytes_limit,omitempty"`
+	MaxAllowedGlobalConstantsDepth int `json:"max_allowed_global_constants_depth,omitempty"`
+
+	// New in Ithaca v012
+	BlocksPerStakeSnapshot                           int64        `json:"blocks_per_stake_snapshot,omitempty"`
+	BakingRewardFixedPortion                         int64        `json:"baking_reward_fixed_portion,omitempty"`
+	BakingRewardBonusPerSlot                         int64        `json:"baking_reward_bonus_per_slot,omitempty"`
+	EndorsingRewardPerSlot                           int64        `json:"endorsing_reward_per_slot,omitempty"`
+	DelayIncrementPerRound                           int          `json:"delay_increment_per_round,omitempty"`
+	ConsensusCommitteeSize                           int          `json:"consensus_committee_size,omitempty"`
+	ConsensusThreshold                               int          `json:"consensus_threshold,omitempty"`
+	MinimalParticipationRatio                        *tezos.Ratio `json:"minimal_participation_ratio,omitempty"`
+	MaxSlashingPeriod                                int64        `json:"max_slashing_period,omitempty"`
+	FrozenDepositsPercentage                         int          `json:"frozen_deposits_percentage,omitempty"`
+	DoubleBakingPunishment                           int64        `json:"double_baking_punishment,omitempty"`
+	RatioOfFrozenDepositsSlashedPerDoubleEndorsement *tezos.Ratio `json:"ratio_of_frozen_deposits_slashed_per_double_endorsement,omitempty"`
 }
 
 func (c *Client) GetConfig(ctx context.Context) (*BlockchainConfig, error) {
@@ -205,6 +237,7 @@ type Supply struct {
 	Activated           float64   `json:"activated"`
 	Unclaimed           float64   `json:"unclaimed"`
 	Circulating         float64   `json:"circulating"`
+	Liquid              float64   `json:"liquid"`
 	Delegated           float64   `json:"delegated"`
 	Staking             float64   `json:"staking"`
 	Shielded            float64   `json:"shielded"`
@@ -226,6 +259,7 @@ type Supply struct {
 	BurnedStorage       float64   `json:"burned_storage"`
 	BurnedExplicit      float64   `json:"burned_explicit"`
 	BurnedSeedMiss      float64   `json:"burned_seed_miss"`
+	BurnedAbsence       float64   `json:"burned_absence"`
 	Frozen              float64   `json:"frozen"`
 	FrozenDeposits      float64   `json:"frozen_deposits"`
 	FrozenRewards       float64   `json:"frozen_rewards"`

@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Blockwatch Data Inc.
+// Copyright (c) 2020-2022 Blockwatch Data Inc.
 // Author: alex@blockwatch.cc
 
 package tzstats
@@ -18,85 +18,48 @@ type Account struct {
 	RowId              uint64              `json:"row_id"`
 	Address            tezos.Address       `json:"address"`
 	AddressType        tezos.AddressType   `json:"address_type"`
-	DelegateId         uint64              `json:"delegate_id"`
-	Delegate           tezos.Address       `json:"delegate"`
+	Pubkey             tezos.Key           `json:"pubkey"`
+	Counter            int64               `json:"counter"`
+	BakerId            uint64              `json:"baker_id,omitempty"`
+	Baker              *tezos.Address      `json:"baker,omitempty"`
 	CreatorId          uint64              `json:"creator_id,omitempty"`
 	Creator            *tezos.Address      `json:"creator,omitempty"`
-	Pubkey             tezos.Key           `json:"pubkey"`
 	FirstIn            int64               `json:"first_in"`
 	FirstOut           int64               `json:"first_out"`
 	FirstSeen          int64               `json:"first_seen"`
 	LastIn             int64               `json:"last_in"`
 	LastOut            int64               `json:"last_out"`
 	LastSeen           int64               `json:"last_seen"`
-	DelegatedSince     int64               `json:"delegated_since"`
-	DelegateSince      int64               `json:"delegate_since"`
-	DelegateUntil      int64               `json:"delegate_until"`
 	FirstSeenTime      time.Time           `json:"first_seen_time"`
 	LastSeenTime       time.Time           `json:"last_seen_time"`
 	FirstInTime        time.Time           `json:"first_in_time"`
 	LastInTime         time.Time           `json:"last_in_time"`
 	FirstOutTime       time.Time           `json:"first_out_time"`
 	LastOutTime        time.Time           `json:"last_out_time"`
+	DelegatedSince     int64               `json:"delegated_since"`
 	DelegatedSinceTime time.Time           `json:"delegated_since_time"`
-	DelegateSinceTime  time.Time           `json:"delegate_since_time"`
-	DelegateUntilTime  time.Time           `json:"delegate_until_time"`
 	TotalReceived      float64             `json:"total_received"`
 	TotalSent          float64             `json:"total_sent"`
 	TotalBurned        float64             `json:"total_burned"`
 	TotalFeesPaid      float64             `json:"total_fees_paid"`
-	TotalRewardsEarned float64             `json:"total_rewards_earned,omitempty"`
-	TotalFeesEarned    float64             `json:"total_fees_earned,omitempty"`
-	TotalLost          float64             `json:"total_lost,omitempty"`
-	FrozenDeposits     float64             `json:"frozen_deposits,omitempty"`
-	FrozenRewards      float64             `json:"frozen_rewards,omitempty"`
-	FrozenFees         float64             `json:"frozen_fees,omitempty"`
 	UnclaimedBalance   float64             `json:"unclaimed_balance,omitempty"`
 	SpendableBalance   float64             `json:"spendable_balance"`
-	DelegatedBalance   float64             `json:"delegated_balance,omitempty"`
-	TotalDelegations   int64               `json:"total_delegations,omitempty"`
-	ActiveDelegations  int64               `json:"active_delegations,omitempty"`
 	IsFunded           bool                `json:"is_funded"`
 	IsActivated        bool                `json:"is_activated"`
 	IsDelegated        bool                `json:"is_delegated"`
 	IsRevealed         bool                `json:"is_revealed"`
-	IsDelegate         bool                `json:"is_delegate"`
-	IsActiveDelegate   bool                `json:"is_active_delegate"`
+	IsBaker            bool                `json:"is_baker"`
 	IsContract         bool                `json:"is_contract"`
-	BlocksBaked        int                 `json:"blocks_baked,omitempty"`
-	BlocksMissed       int                 `json:"blocks_missed,omitempty"`
-	BlocksStolen       int                 `json:"blocks_stolen,omitempty"`
-	BlocksEndorsed     int                 `json:"blocks_endorsed,omitempty"`
-	SlotsEndorsed      int                 `json:"slots_endorsed,omitempty"`
-	SlotsMissed        int                 `json:"slots_missed,omitempty"`
 	NOps               int                 `json:"n_ops"`
 	NOpsFailed         int                 `json:"n_ops_failed"`
 	NTx                int                 `json:"n_tx"`
 	NDelegation        int                 `json:"n_delegation"`
 	NOrigination       int                 `json:"n_origination"`
-	NProposal          int                 `json:"n_proposal"`
-	NBallot            int                 `json:"n_ballot"`
+	NConstants         int                 `json:"n_contstants"`
 	TokenGenMin        int64               `json:"token_gen_min"`
 	TokenGenMax        int64               `json:"token_gen_max"`
-	GracePeriod        int64               `json:"grace_period,omitempty"`
-	StakingBalance     float64             `json:"staking_balance,omitempty,notable"`
-	StakingCapacity    float64             `json:"staking_capacity,omitempty,notable"`
-	Rolls              int64               `json:"rolls,omitempty,notable"`
-	LastBakeHeight     int64               `json:"last_bake_height,omitempty,notable"`
-	LastBakeBlock      string              `json:"last_bake_block,omitempty,notable"`
-	LastBakeTime       *time.Time          `json:"last_bake_time,omitempty,notable"`
-	LastEndorseHeight  int64               `json:"last_endorse_height,omitempty,notable"`
-	LastEndorseBlock   string              `json:"last_endorse_block,omitempty,notable"`
-	LastEndorseTime    *time.Time          `json:"last_endorse_time,omitempty,notable"`
-	NextBakeHeight     int64               `json:"next_bake_height,omitempty"`
-	NextBakePriority   int                 `json:"next_bake_priority,omitempty"`
-	NextBakeTime       *time.Time          `json:"next_bake_time,omitempty"`
-	NextEndorseHeight  int64               `json:"next_endorse_height,omitempty"`
-	NextEndorseTime    *time.Time          `json:"next_endorse_time,omitempty"`
-	AvgLuck64          int64               `json:"avg_luck_64,omitempty,notable"`
-	AvgPerformance64   int64               `json:"avg_performance_64,omitempty,notable"`
-	AvgContribution64  int64               `json:"avg_contribution_64,omitempty,notable"`
-	BakerVersion       string              `json:"baker_version,omitempty"`
+	LifetimeRewards    float64             `json:"lifetime_rewards,omitempty"`
+	PendingRewards     float64             `json:"pending_rewards,omitempty"`
 	Metadata           map[string]Metadata `json:"metadata,omitempty,notable"`
 	columns            []string            `json:"-"`
 }
@@ -176,10 +139,18 @@ func (a *Account) UnmarshalJSONBrief(data []byte) error {
 			acc.Address, err = tezos.ParseAddress(f.(string))
 		case "address_type":
 			acc.AddressType = tezos.ParseAddressType(f.(string))
-		case "delegate_id":
-			acc.DelegateId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
-		case "delegate":
-			acc.Delegate, err = tezos.ParseAddress(f.(string))
+		case "pubkey":
+			acc.Pubkey, err = tezos.ParseKey(f.(string))
+		case "counter":
+			acc.Counter, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "baker_id":
+			acc.BakerId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
+		case "baker":
+			var a tezos.Address
+			a, err = tezos.ParseAddress(f.(string))
+			if err == nil {
+				acc.Baker = &a
+			}
 		case "creator_id":
 			acc.CreatorId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
 		case "creator":
@@ -188,8 +159,6 @@ func (a *Account) UnmarshalJSONBrief(data []byte) error {
 			if err == nil {
 				acc.Creator = &a
 			}
-		case "pubkey":
-			acc.Pubkey, err = tezos.ParseKey(f.(string))
 		case "first_in":
 			acc.FirstIn, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "first_out":
@@ -204,10 +173,6 @@ func (a *Account) UnmarshalJSONBrief(data []byte) error {
 			acc.LastSeen, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "delegated_since":
 			acc.DelegatedSince, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "delegate_since":
-			acc.DelegateSince, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "delegate_until":
-			acc.DelegateUntil, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "total_received":
 			acc.TotalReceived, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "total_sent":
@@ -216,28 +181,10 @@ func (a *Account) UnmarshalJSONBrief(data []byte) error {
 			acc.TotalBurned, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "total_fees_paid":
 			acc.TotalFeesPaid, err = strconv.ParseFloat(f.(json.Number).String(), 64)
-		case "total_rewards_earned":
-			acc.TotalRewardsEarned, err = strconv.ParseFloat(f.(json.Number).String(), 64)
-		case "total_fees_earned":
-			acc.TotalFeesEarned, err = strconv.ParseFloat(f.(json.Number).String(), 64)
-		case "total_lost":
-			acc.TotalLost, err = strconv.ParseFloat(f.(json.Number).String(), 64)
-		case "frozen_deposits":
-			acc.FrozenDeposits, err = strconv.ParseFloat(f.(json.Number).String(), 64)
-		case "frozen_rewards":
-			acc.FrozenRewards, err = strconv.ParseFloat(f.(json.Number).String(), 64)
-		case "frozen_fees":
-			acc.FrozenFees, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "unclaimed_balance":
 			acc.UnclaimedBalance, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "spendable_balance":
 			acc.SpendableBalance, err = strconv.ParseFloat(f.(json.Number).String(), 64)
-		case "delegated_balance":
-			acc.DelegatedBalance, err = strconv.ParseFloat(f.(json.Number).String(), 64)
-		case "total_delegations":
-			acc.TotalDelegations, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "active_delegations":
-			acc.ActiveDelegations, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "is_funded":
 			acc.IsFunded, err = strconv.ParseBool(f.(json.Number).String())
 		case "is_activated":
@@ -246,24 +193,10 @@ func (a *Account) UnmarshalJSONBrief(data []byte) error {
 			acc.IsDelegated, err = strconv.ParseBool(f.(json.Number).String())
 		case "is_revealed":
 			acc.IsRevealed, err = strconv.ParseBool(f.(json.Number).String())
-		case "is_active_delegate":
-			acc.IsActiveDelegate, err = strconv.ParseBool(f.(json.Number).String())
-		case "is_delegate":
-			acc.IsDelegate, err = strconv.ParseBool(f.(json.Number).String())
+		case "is_baker":
+			acc.IsBaker, err = strconv.ParseBool(f.(json.Number).String())
 		case "is_contract":
 			acc.IsContract, err = strconv.ParseBool(f.(json.Number).String())
-		case "blocks_baked":
-			acc.BlocksBaked, err = strconv.Atoi(f.(json.Number).String())
-		case "blocks_missed":
-			acc.BlocksMissed, err = strconv.Atoi(f.(json.Number).String())
-		case "blocks_stolen":
-			acc.BlocksStolen, err = strconv.Atoi(f.(json.Number).String())
-		case "blocks_endorsed":
-			acc.BlocksEndorsed, err = strconv.Atoi(f.(json.Number).String())
-		case "slots_endorsed":
-			acc.SlotsEndorsed, err = strconv.Atoi(f.(json.Number).String())
-		case "slots_missed":
-			acc.SlotsMissed, err = strconv.Atoi(f.(json.Number).String())
 		case "n_ops":
 			acc.NOps, err = strconv.Atoi(f.(json.Number).String())
 		case "n_ops_failed":
@@ -274,16 +207,12 @@ func (a *Account) UnmarshalJSONBrief(data []byte) error {
 			acc.NDelegation, err = strconv.Atoi(f.(json.Number).String())
 		case "n_origination":
 			acc.NOrigination, err = strconv.Atoi(f.(json.Number).String())
-		case "n_proposal":
-			acc.NProposal, err = strconv.Atoi(f.(json.Number).String())
-		case "n_ballot":
-			acc.NBallot, err = strconv.Atoi(f.(json.Number).String())
+		case "n_constants":
+			acc.NConstants, err = strconv.Atoi(f.(json.Number).String())
 		case "token_gen_min":
 			acc.TokenGenMin, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "token_gen_max":
 			acc.TokenGenMax, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "grace_period":
-			acc.GracePeriod, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "first_seen_time":
 			var ts int64
 			ts, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
@@ -325,18 +254,6 @@ func (a *Account) UnmarshalJSONBrief(data []byte) error {
 			ts, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 			if err == nil {
 				acc.DelegatedSinceTime = time.Unix(0, ts*1000000).UTC()
-			}
-		case "delegate_since_time":
-			var ts int64
-			ts, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-			if err == nil {
-				acc.DelegateSinceTime = time.Unix(0, ts*1000000).UTC()
-			}
-		case "delegate_until_time":
-			var ts int64
-			ts, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-			if err == nil {
-				acc.DelegateUntilTime = time.Unix(0, ts*1000000).UTC()
 			}
 		}
 		if err != nil {

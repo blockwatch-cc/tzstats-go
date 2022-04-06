@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Blockwatch Data Inc.
+// Copyright (c) 2020-2022 Blockwatch Data Inc.
 // Author: alex@blockwatch.cc
 
 package tzstats
@@ -20,7 +20,7 @@ import (
 
 type BigmapValue struct {
 	Key       MultiKey        `json:"key"`
-	KeyHash   tezos.ExprHash  `json:"key_hash"`
+	Hash      tezos.ExprHash  `json:"hash"`
 	Meta      *BigmapMeta     `json:"meta,omitempty"`
 	Value     interface{}     `json:"value,omitempty"`
 	Height    int64           `json:"height"`
@@ -30,14 +30,13 @@ type BigmapValue struct {
 }
 
 type BigmapMeta struct {
-	Contract     tezos.Address   `json:"contract"`
-	BigmapId     int64           `json:"bigmap_id"`
-	UpdateTime   time.Time       `json:"time"`
-	UpdateHeight int64           `json:"height"`
-	UpdateBlock  tezos.BlockHash `json:"block"`
-	UpdateOp     tezos.OpHash    `json:"op"`
-	Sender       tezos.Address   `json:"sender"`
-	Source       tezos.Address   `json:"source"`
+	Contract     tezos.Address `json:"contract"`
+	BigmapId     int64         `json:"bigmap_id"`
+	UpdateTime   time.Time     `json:"time"`
+	UpdateHeight int64         `json:"height"`
+	UpdateOp     tezos.OpHash  `json:"op"`
+	Sender       tezos.Address `json:"sender"`
+	Source       tezos.Address `json:"source"`
 }
 
 func (v BigmapValue) GetString(path string) (string, bool) {
@@ -87,7 +86,7 @@ type BigmapValueRow struct {
 	Height   int64          `json:"height"`
 	Time     time.Time      `json:"time"`
 	KeyId    uint64         `json:"key_id"`
-	KeyHash  tezos.ExprHash `json:"key_hash,omitempty"`
+	Hash     tezos.ExprHash `json:"hash,omitempty"`
 	Key      string         `json:"key,omitempty"`
 	Value    string         `json:"value,omitempty"`
 
@@ -194,7 +193,7 @@ func (b *BigmapValueRow) UnmarshalJSONBrief(data []byte) error {
 		case "key_id":
 			br.KeyId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
 		case "key_hash":
-			br.KeyHash, err = tezos.ParseExprHash(f.(string))
+			br.Hash, err = tezos.ParseExprHash(f.(string))
 		case "key":
 			br.Key = f.(string)
 		case "value":
@@ -268,7 +267,7 @@ func (c *Client) GetBigmapValue(ctx context.Context, id int64, key string, param
 	return v, nil
 }
 
-func (c *Client) GetBigmapValues(ctx context.Context, id int64, params ContractParams) ([]BigmapValue, error) {
+func (c *Client) ListBigmapValues(ctx context.Context, id int64, params ContractParams) ([]BigmapValue, error) {
 	vals := make([]BigmapValue, 0)
 	u := params.AppendQuery(fmt.Sprintf("/explorer/bigmap/%d/values", id))
 	if err := c.get(ctx, u, nil, &vals); err != nil {

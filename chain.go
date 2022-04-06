@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Blockwatch Data Inc.
+// Copyright (c) 2020-2022 Blockwatch Data Inc.
 // Author: alex@blockwatch.cc
 
 package tzstats
@@ -12,45 +12,46 @@ import (
 )
 
 type Chain struct {
-	RowId              uint64 `json:"row_id"`
-	Height             int64  `json:"height"`
-	Cycle              int64  `json:"cycle"`
-	Timestamp          int64  `json:"time"`
-	TotalAccounts      int64  `json:"total_accounts"`
-	TotalContracts     int64  `json:"total_contracts"`
-	TotalOps           int64  `json:"total_ops"`
-	TotalContractOps   int64  `json:"total_contract_ops"`
-	TotalContractCalls int64  `json:"total_contract_calls"`
-	TotalActivations   int64  `json:"total_activations"`
-	TotalSeedNonces    int64  `json:"total_seed_nonce_revelations"`
-	TotalEndorsements  int64  `json:"total_endorsements"`
-	TotalDoubleBake    int64  `json:"total_double_baking_evidences"`
-	TotalDoubleEndorse int64  `json:"total_double_endorsement_evidences"`
-	TotalDelegations   int64  `json:"total_delegations"`
-	TotalReveals       int64  `json:"total_reveals"`
-	TotalOriginations  int64  `json:"total_originations"`
-	TotalTransactions  int64  `json:"total_transactions"`
-	TotalProposals     int64  `json:"total_proposals"`
-	TotalBallots       int64  `json:"total_ballots"`
-	TotalConstants     int64  `json:"total_constants"`
-	TotalStorageBytes  int64  `json:"total_storage_bytes"`
-	TotalPaidBytes     int64  `json:"total_paid_bytes"`
-	FundedAccounts     int64  `json:"funded_accounts"`
-	DustAccounts       int64  `json:"dust_accounts"`
-	UnclaimedAccounts  int64  `json:"unclaimed_accounts"`
-	TotalDelegators    int64  `json:"total_delegators"`
-	ActiveDelegators   int64  `json:"active_delegators"`
-	InactiveDelegators int64  `json:"inactive_delegators"`
-	DustDelegators     int64  `json:"dust_delegators"`
-	TotalDelegates     int64  `json:"total_delegates"`
-	ActiveDelegates    int64  `json:"active_delegates"`
-	InactiveDelegates  int64  `json:"inactive_delegates"`
-	ZeroDelegates      int64  `json:"zero_delegates"`
-	SelfDelegates      int64  `json:"self_delegates"`
-	SingleDelegates    int64  `json:"single_delegates"`
-	MultiDelegates     int64  `json:"multi_delegates"`
-	Rolls              int64  `json:"rolls"`
-	RollOwners         int64  `json:"roll_owners"`
+	RowId                uint64 `json:"row_id"`
+	Height               int64  `json:"height"`
+	Cycle                int64  `json:"cycle"`
+	Timestamp            int64  `json:"time"`
+	TotalAccounts        int64  `json:"total_accounts"`
+	TotalContracts       int64  `json:"total_contracts"`
+	TotalOps             int64  `json:"total_ops"`
+	TotalContractOps     int64  `json:"total_contract_ops"`
+	TotalContractCalls   int64  `json:"total_contract_calls"`
+	TotalActivations     int64  `json:"total_activations"`
+	TotalNonces          int64  `json:"total_nonce_revelations"`
+	TotalEndorsements    int64  `json:"total_endorsements"`
+	TotalPreendorsements int64  `json:"total_preendorsements"`
+	TotalDoubleBake      int64  `json:"total_double_bakings"`
+	TotalDoubleEndorse   int64  `json:"total_double_endorsements"`
+	TotalDelegations     int64  `json:"total_delegations"`
+	TotalReveals         int64  `json:"total_reveals"`
+	TotalOriginations    int64  `json:"total_originations"`
+	TotalTransactions    int64  `json:"total_transactions"`
+	TotalProposals       int64  `json:"total_proposals"`
+	TotalBallots         int64  `json:"total_ballots"`
+	TotalConstants       int64  `json:"total_constants"`
+	TotalSetLimits       int64  `json:"total_set_limits"`
+	TotalStorageBytes    int64  `json:"total_storage_bytes"`
+	FundedAccounts       int64  `json:"funded_accounts"`
+	DustAccounts         int64  `json:"dust_accounts"`
+	UnclaimedAccounts    int64  `json:"unclaimed_accounts"`
+	TotalDelegators      int64  `json:"total_delegators"`
+	ActiveDelegators     int64  `json:"active_delegators"`
+	InactiveDelegators   int64  `json:"inactive_delegators"`
+	DustDelegators       int64  `json:"dust_delegators"`
+	TotalBakers          int64  `json:"total_bakers"`
+	ActiveBakers         int64  `json:"active_bakers"`
+	InactiveBakers       int64  `json:"inactive_bakers"`
+	ZeroBakers           int64  `json:"zero_bakers"`
+	SelfBakers           int64  `json:"self_bakers"`
+	SingleBakers         int64  `json:"single_bakers"`
+	MultiBakers          int64  `json:"multi_bakers"`
+	Rolls                int64  `json:"rolls"`
+	RollOwners           int64  `json:"roll_owners"`
 
 	columns []string `json:"-"`
 }
@@ -119,7 +120,6 @@ func (c *Chain) UnmarshalJSONBrief(data []byte) error {
 		return err
 	}
 	for i, v := range c.columns {
-		// var t int64
 		f := unpacked[i]
 		if f == nil {
 			continue
@@ -145,13 +145,13 @@ func (c *Chain) UnmarshalJSONBrief(data []byte) error {
 			cc.TotalContractCalls, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "total_activations":
 			cc.TotalActivations, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "total_seed_nonce_revelations":
-			cc.TotalSeedNonces, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "total_nonce_revelations":
+			cc.TotalNonces, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "total_endorsements":
 			cc.TotalEndorsements, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "total_double_baking_evidences":
+		case "total_double_bakings":
 			cc.TotalDoubleBake, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "total_double_endorsement_evidences":
+		case "total_double_endorsements":
 			cc.TotalDoubleEndorse, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "total_delegations":
 			cc.TotalDelegations, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
@@ -167,10 +167,10 @@ func (c *Chain) UnmarshalJSONBrief(data []byte) error {
 			cc.TotalBallots, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "total_constants":
 			cc.TotalConstants, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "total_set_limits":
+			cc.TotalSetLimits, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "total_storage_bytes":
 			cc.TotalStorageBytes, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "total_paid_bytes":
-			cc.TotalPaidBytes, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "funded_accounts":
 			cc.FundedAccounts, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "dust_accounts":
@@ -185,20 +185,20 @@ func (c *Chain) UnmarshalJSONBrief(data []byte) error {
 			cc.InactiveDelegators, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "dust_delegators":
 			cc.DustDelegators, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "total_delegates":
-			cc.TotalDelegates, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "active_delegates":
-			cc.ActiveDelegates, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "inactive_delegates":
-			cc.InactiveDelegates, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "zero_delegates":
-			cc.ZeroDelegates, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "self_delegates":
-			cc.SelfDelegates, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "single_delegates":
-			cc.SingleDelegates, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "multi_delegates":
-			cc.MultiDelegates, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "total_bakers":
+			cc.TotalBakers, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "active_bakers":
+			cc.ActiveBakers, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "inactive_bakers":
+			cc.InactiveBakers, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "zero_bakers":
+			cc.ZeroBakers, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "self_bakers":
+			cc.SelfBakers, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "single_bakers":
+			cc.SingleBakers, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "multi_bakers":
+			cc.MultiBakers, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "rolls":
 			cc.Rolls, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "roll_owners":

@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Blockwatch Data Inc.
+// Copyright (c) 2020-2022 Blockwatch Data Inc.
 // Author: alex@blockwatch.cc
 
 package tzstats
@@ -136,15 +136,6 @@ func (c *Client) ListVoters(ctx context.Context, id int, stage int) ([]Voter, er
 func (c *Client) ListBallots(ctx context.Context, id int, stage int) ([]Ballot, error) {
 	ballots := make([]Ballot, 0)
 	u := fmt.Sprintf("/explorer/election/%d/%d/ballots?limit=5000", id, stage)
-	if err := c.get(ctx, u, nil, &ballots); err != nil {
-		return nil, err
-	}
-	return ballots, nil
-}
-
-func (c *Client) ListVoterBallots(ctx context.Context, addr tezos.Address) ([]Ballot, error) {
-	ballots := make([]Ballot, 0)
-	u := fmt.Sprintf("/explorer/account/%s/ballots?limit=5000", addr)
 	if err := c.get(ctx, u, nil, &ballots); err != nil {
 		return nil, err
 	}

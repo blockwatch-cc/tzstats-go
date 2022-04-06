@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Snapshotwatch Data Inc.
+// Copyright (c) 2020-2022 Blockwatch Data Inc.
 // Author: alex@blockwatch.cc
 
 package tzstats
@@ -23,10 +23,10 @@ type Snapshot struct {
 	Index        int64         `json:"index"`
 	Rolls        int64         `json:"rolls"`
 	AccountId    uint64        `json:"account_id"`
-	Account      tezos.Address `json:"address"` // [sic]
-	DelegateId   uint64        `json:"delegate_id"`
-	Delegate     tezos.Address `json:"delegate"`
-	IsDelegate   bool          `json:"is_delegate"`
+	Address      tezos.Address `json:"address"`
+	BakerId      uint64        `json:"baker_id"`
+	Baker        tezos.Address `json:"baker"`
+	IsBaker      bool          `json:"is_baker"`
 	IsActive     bool          `json:"is_active"`
 	Balance      float64       `json:"balance"`
 	Delegated    float64       `json:"delegated"`
@@ -125,15 +125,15 @@ func (s *Snapshot) UnmarshalJSONBrief(data []byte) error {
 		case "rolls":
 			snap.Rolls, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "address":
-			snap.Account, err = tezos.ParseAddress(f.(string))
+			snap.Address, err = tezos.ParseAddress(f.(string))
 		case "account_id":
 			snap.AccountId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
-		case "delegate":
-			snap.Delegate, err = tezos.ParseAddress(f.(string))
-		case "delegate_id":
-			snap.DelegateId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
-		case "is_delegate":
-			snap.IsDelegate, err = strconv.ParseBool(f.(json.Number).String())
+		case "baker":
+			snap.Baker, err = tezos.ParseAddress(f.(string))
+		case "baker_id":
+			snap.BakerId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
+		case "is_baker":
+			snap.IsBaker, err = strconv.ParseBool(f.(json.Number).String())
 		case "is_active":
 			snap.IsActive, err = strconv.ParseBool(f.(json.Number).String())
 		case "balance":

@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Blockwatch Data Inc.
+// Copyright (c) 2020-2022 Blockwatch Data Inc.
 // Author: alex@blockwatch.cc
 
 package tzstats
@@ -12,13 +12,16 @@ import (
 
 func (c *Client) GetIpfsData(ctx context.Context, uri string, val interface{}) error {
 	if strings.HasPrefix(uri, "ipfs://") {
-		uri = strings.TrimPrefix(uri, "ipfs://")
+		uri = "/ipfs/" + strings.TrimPrefix(uri, "ipfs://")
 	}
 	return c.get(ctx, uri, nil, val)
 }
 
-func (c *Client) GetIpfsImage(ctx context.Context, path, mime string, w io.Writer) error {
+func (c *Client) GetIpfsImage(ctx context.Context, uri, mime string, w io.Writer) error {
+	if strings.HasPrefix(uri, "ipfs://") {
+		uri = "/ipfs/" + strings.TrimPrefix(uri, "ipfs://")
+	}
 	h := make(http.Header)
 	h.Add("Accept", mime)
-	return c.get(ctx, path, h, w)
+	return c.get(ctx, uri, h, w)
 }

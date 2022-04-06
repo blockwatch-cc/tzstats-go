@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Blockwatch Data Inc.
+// Copyright (c) 2020-2022 Blockwatch Data Inc.
 // Author: alex@blockwatch.cc
 
 package tzstats
@@ -18,62 +18,59 @@ import (
 )
 
 type Op struct {
-	RowId        uint64              `json:"row_id"`
-	Hash         tezos.OpHash        `json:"hash"`
-	Type         tezos.OpType        `json:"type"`
-	BlockHash    tezos.BlockHash     `json:"block"`
-	Timestamp    time.Time           `json:"time"`
-	Height       int64               `json:"height"`
-	Cycle        int64               `json:"cycle"`
-	Counter      int64               `json:"counter"`
-	OpL          int                 `json:"op_l"`
-	OpP          int                 `json:"op_p"`
-	OpC          int                 `json:"op_c"`
-	OpI          int                 `json:"op_i"`
-	Status       tezos.OpStatus      `json:"status"`
-	GasLimit     int64               `json:"gas_limit"`
-	GasUsed      int64               `json:"gas_used"`
-	GasPrice     float64             `json:"gas_price"`
-	StorageLimit int64               `json:"storage_limit"`
-	StorageSize  int64               `json:"storage_size"`
-	StoragePaid  int64               `json:"storage_paid"`
-	Volume       float64             `json:"volume"`
-	Fee          float64             `json:"fee"`
-	Reward       float64             `json:"reward"`
-	Deposit      float64             `json:"deposit"`
-	Burned       float64             `json:"burned"`
-	SenderId     uint64              `json:"sender_id"`
-	Sender       tezos.Address       `json:"sender"`
-	ReceiverId   uint64              `json:"receiver_id"`
-	Receiver     tezos.Address       `json:"receiver"`
-	CreatorId    uint64              `json:"creator_id"`
-	Creator      tezos.Address       `json:"creator"`
-	DelegateId   uint64              `json:"delegate_id"`
-	Delegate     tezos.Address       `json:"delegate"`
-	IsSuccess    bool                `json:"is_success"`
-	IsContract   bool                `json:"is_contract"`
-	IsInternal   bool                `json:"is_internal"`
-	IsImplicit   bool                `json:"is_implicit"`
-	HasData      bool                `json:"has_data"`
-	Data         json.RawMessage     `json:"data,omitempty"`
-	Parameters   *ContractParameters `json:"parameters,omitempty"`
-	Storage      *ContractStorage    `json:"storage,omitempty"`
-	BigmapDiff   []BigmapUpdate      `json:"big_map_diff,omitempty"`
-	Errors       json.RawMessage     `json:"errors,omitempty"`
-	TDD          float64             `json:"days_destroyed"`
-	BranchHeight int64               `json:"branch_height,omitempty"`
-	BranchDepth  int64               `json:"branch_depth,omitempty"`
-	BranchHash   *tezos.BlockHash    `json:"branch_hash,omitempty"`
-	EntrypointId int                 `json:"entrypoint_id,omitempty"`
-	Entrypoint   string              `json:"entrypoint,omitempty"`
-	IsOrphan     bool                `json:"is_orphan,omitempty"`
-	IsBatch      bool                `json:"is_batch,omitempty"`
-	IsSapling    bool                `json:"is_sapling,omitempty"`
-	BatchVolume  float64             `json:"batch_volume,omitempty,notable"`
-	Metadata     map[string]Metadata `json:"metadata,omitempty,notable"`
-	Batch        []*Op               `json:"batch,omitempty,notable"`
-	Internal     []*Op               `json:"internal,omitempty,notable"`
-	NOps         int                 `json:"n_ops,omitempty,notable"`
+	Id            uint64              `json:"id"`
+	Hash          tezos.OpHash        `json:"hash"`
+	Type          OpType              `json:"type"`
+	Block         tezos.BlockHash     `json:"block"`
+	Timestamp     time.Time           `json:"time"`
+	Height        int64               `json:"height"`
+	Cycle         int64               `json:"cycle"`
+	Counter       int64               `json:"counter"`
+	OpN           int                 `json:"op_n"`
+	OpP           int                 `json:"op_p"`
+	Status        tezos.OpStatus      `json:"status"`
+	IsSuccess     bool                `json:"is_success"`
+	IsContract    bool                `json:"is_contract"`
+	IsBatch       bool                `json:"is_batch,omitempty"`
+	IsEvent       bool                `json:"is_event"`
+	IsInternal    bool                `json:"is_internal"`
+	GasLimit      int64               `json:"gas_limit"`
+	GasUsed       int64               `json:"gas_used"`
+	StorageLimit  int64               `json:"storage_limit"`
+	StoragePaid   int64               `json:"storage_paid"`
+	Volume        float64             `json:"volume"`
+	Fee           float64             `json:"fee"`
+	Reward        float64             `json:"reward"`
+	Deposit       float64             `json:"deposit"`
+	Burned        float64             `json:"burned"`
+	TDD           float64             `json:"days_destroyed"`
+	SenderId      uint64              `json:"sender_id"`
+	ReceiverId    uint64              `json:"receiver_id"`
+	CreatorId     uint64              `json:"creator_id"`
+	BakerId       uint64              `json:"baker_id"`
+	Sender        tezos.Address       `json:"sender"`
+	Receiver      tezos.Address       `json:"receiver"`
+	Creator       tezos.Address       `json:"creator"`                // origination
+	Baker         tezos.Address       `json:"baker"`                  // delegation, origination
+	PrevBaker     tezos.Address       `json:"previous_baker,notable"` // delegation
+	Source        tezos.Address       `json:"source,notable"`         // internal operations
+	Offender      tezos.Address       `json:"offender,notable"`       // double_x
+	Accuser       tezos.Address       `json:"accuser,notable"`        // double_x
+	Data          json.RawMessage     `json:"data,omitempty"`
+	Errors        json.RawMessage     `json:"errors,omitempty"`
+	Parameters    *ContractParameters `json:"parameters,omitempty"`   // transaction
+	Storage       *ContractValue      `json:"storage,omitempty"`      // transaction, origination
+	BigmapDiff    []BigmapUpdate      `json:"big_map_diff,omitempty"` // transaction, origination
+	Value         micheline.Prim      `json:"value,omitempty"`        // register_constant
+	Power         int                 `json:"power,omitempty"`        // endorsement
+	Limit         *float64            `json:"limit,omitempty"`        // set deposits limit
+	Confirmations int64               `json:"confirmations,notable"`
+	BatchVolume   float64             `json:"batch_volume,omitempty,notable"`
+	Entrypoint    string              `json:"entrypoint,omitempty,notable"`
+	NOps          int                 `json:"n_ops,omitempty,notable"`
+	Batch         []*Op               `json:"batch,omitempty,notable"`
+	Internal      []*Op               `json:"internal,omitempty,notable"`
+	Metadata      map[string]Metadata `json:"metadata,omitempty,notable"`
 
 	columns  []string                 // optional, for decoding bulk arrays
 	param    micheline.Type           // optional, may be decoded from script
@@ -83,6 +80,14 @@ type Op struct {
 	withPrim bool
 	withMeta bool
 	onError  int
+}
+
+func (o *Op) BlockId() BlockId {
+	return BlockId{
+		Height: o.Height,
+		Hash:   o.Block.Clone(),
+		Time:   o.Timestamp,
+	}
 }
 
 func (o *Op) Content() []*Op {
@@ -113,7 +118,7 @@ func (o *Op) Cursor() uint64 {
 	if l := len(op.Internal); l > 0 {
 		op = op.Internal[l-1]
 	}
-	return op.RowId
+	return op.Id
 }
 
 func (o *Op) WithColumns(cols ...string) *Op {
@@ -154,10 +159,11 @@ func (o *Op) OnError(action int) *Op {
 }
 
 type OpList struct {
-	Rows    []*Op
-	columns []string
-	ctx     context.Context
-	client  *Client
+	Rows     []*Op
+	withPrim bool
+	columns  []string
+	ctx      context.Context
+	client   *Client
 }
 
 func (l OpList) Len() int {
@@ -168,7 +174,8 @@ func (l OpList) Cursor() uint64 {
 	if len(l.Rows) == 0 {
 		return 0
 	}
-	return l.Rows[len(l.Rows)-1].RowId
+	// on table API only row_id is set
+	return l.Rows[len(l.Rows)-1].Id
 }
 
 func (l *OpList) UnmarshalJSON(data []byte) error {
@@ -184,7 +191,8 @@ func (l *OpList) UnmarshalJSON(data []byte) error {
 	}
 	for _, v := range array {
 		op := &Op{
-			columns: l.columns,
+			withPrim: l.withPrim,
+			columns:  l.columns,
 		}
 		// we may need contract scripts
 		if is, ok := getTableColumn(v, l.columns, "is_contract"); ok && is == "1" {
@@ -240,46 +248,48 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 			continue
 		}
 		switch v {
-		case "row_id":
-			op.RowId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
+		case "id":
+			op.Id, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
+		case "hash":
+			op.Hash, err = tezos.ParseOpHash(f.(string))
+		case "type":
+			op.Type = ParseOpType(f.(string))
+		case "block":
+			op.Block, err = tezos.ParseBlockHash(f.(string))
 		case "time":
 			var ts int64
 			ts, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 			if err == nil {
 				op.Timestamp = time.Unix(0, ts*1000000).UTC()
 			}
-		case "block":
-			op.BlockHash, err = tezos.ParseBlockHash(f.(string))
 		case "height":
 			op.Height, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "cycle":
 			op.Cycle, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "hash":
-			op.Hash, err = tezos.ParseOpHash(f.(string))
 		case "counter":
 			op.Counter, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "op_c":
-			op.OpC, err = strconv.Atoi(f.(json.Number).String())
-		case "op_i":
-			op.OpI, err = strconv.Atoi(f.(json.Number).String())
-		case "op_l":
-			op.OpL, err = strconv.Atoi(f.(json.Number).String())
+		case "op_n":
+			op.OpN, err = strconv.Atoi(f.(json.Number).String())
 		case "op_p":
 			op.OpP, err = strconv.Atoi(f.(json.Number).String())
-		case "type":
-			op.Type = tezos.ParseOpType(f.(string))
 		case "status":
 			op.Status = tezos.ParseOpStatus(f.(string))
+		case "is_success":
+			op.IsSuccess, err = strconv.ParseBool(f.(json.Number).String())
+		case "is_contract":
+			op.IsContract, err = strconv.ParseBool(f.(json.Number).String())
+		case "is_batch":
+			op.IsBatch, err = strconv.ParseBool(f.(json.Number).String())
+		case "is_event":
+			op.IsEvent, err = strconv.ParseBool(f.(json.Number).String())
+		case "is_internal":
+			op.IsInternal, err = strconv.ParseBool(f.(json.Number).String())
 		case "gas_limit":
 			op.GasLimit, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "gas_used":
 			op.GasUsed, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "gas_price":
-			op.GasPrice, err = f.(json.Number).Float64()
 		case "storage_limit":
 			op.StorageLimit, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "storage_size":
-			op.StorageSize, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "storage_paid":
 			op.StoragePaid, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "volume":
@@ -292,34 +302,34 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 			op.Deposit, err = f.(json.Number).Float64()
 		case "burned":
 			op.Burned, err = f.(json.Number).Float64()
+		case "days_destroyed":
+			op.TDD, err = f.(json.Number).Float64()
 		case "sender_id":
 			op.SenderId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
-		case "sender":
-			op.Sender, err = tezos.ParseAddress(f.(string))
 		case "receiver_id":
 			op.ReceiverId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
-		case "receiver":
-			op.Receiver, err = tezos.ParseAddress(f.(string))
 		case "creator_id":
 			op.CreatorId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
+		case "baker_id":
+			op.BakerId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
+		case "sender":
+			op.Sender, err = tezos.ParseAddress(f.(string))
+		case "receiver":
+			op.Receiver, err = tezos.ParseAddress(f.(string))
 		case "creator":
 			op.Creator, err = tezos.ParseAddress(f.(string))
-		case "delegate_id":
-			op.DelegateId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
-		case "delegate":
-			op.Delegate, err = tezos.ParseAddress(f.(string))
-		case "is_success":
-			op.IsSuccess, err = strconv.ParseBool(f.(json.Number).String())
-		case "is_contract":
-			op.IsContract, err = strconv.ParseBool(f.(json.Number).String())
-		case "is_internal":
-			op.IsInternal, err = strconv.ParseBool(f.(json.Number).String())
-		case "is_implicit":
-			op.IsImplicit, err = strconv.ParseBool(f.(json.Number).String())
-		case "has_data":
-			op.HasData, err = strconv.ParseBool(f.(json.Number).String())
+		case "baker":
+			op.Baker, err = tezos.ParseAddress(f.(string))
 		case "data":
 			op.Data, err = json.Marshal(f)
+		case "errors":
+			op.Errors, err = json.Marshal(f)
+		case "entrypoint":
+			if op.Parameters == nil {
+				op.Parameters = &ContractParameters{}
+			}
+			op.Parameters.Entrypoint = f.(string)
+			op.Entrypoint = f.(string)
 		case "parameters":
 			var buf []byte
 			if buf, err = hex.DecodeString(f.(string)); err == nil && len(buf) > 0 {
@@ -333,9 +343,6 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 					if o.withPrim {
 						op.Parameters.ContractValue.Prim = &prim
 					}
-					op.Parameters.Call = ep.Call
-					op.Parameters.Branch = ep.Branch
-					op.Parameters.Id = ep.Id
 					val := micheline.NewValue(ep.Type(), prim)
 					val.Render = o.onError
 					op.Parameters.ContractValue.Value, err = val.Map()
@@ -350,14 +357,14 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 				prim := micheline.Prim{}
 				err = prim.UnmarshalBinary(buf)
 				if err == nil {
-					op.Storage = &ContractStorage{}
+					op.Storage = &ContractValue{}
 					if o.withPrim {
-						op.Storage.ContractValue.Prim = &prim
+						op.Storage.Prim = &prim
 					}
 					if o.store.IsValid() {
 						val := micheline.NewValue(o.store, prim)
 						val.Render = o.onError
-						op.Storage.ContractValue.Value, err = val.Map()
+						op.Storage.Value, err = val.Map()
 						if err != nil {
 							err = fmt.Errorf("decoding storage %s: %w", f.(string), err)
 						}
@@ -401,7 +408,7 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 								mk := MultiKey{}
 								_ = mk.UnmarshalJSON(keybuf)
 								op.BigmapDiff[i].BigmapValue.Key = mk
-								op.BigmapDiff[i].BigmapValue.KeyHash = v.KeyHash
+								op.BigmapDiff[i].BigmapValue.Hash = v.KeyHash
 							}
 							if o.withMeta {
 								op.BigmapDiff[i].BigmapValue.Meta = &BigmapMeta{
@@ -436,24 +443,6 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 					}
 				}
 			}
-		case "errors":
-			op.Errors, err = json.Marshal(f)
-		case "days_destroyed":
-			op.TDD, err = f.(json.Number).Float64()
-		case "branch_hash":
-			var bh tezos.BlockHash
-			bh, err = tezos.ParseBlockHash(f.(string))
-			if err == nil {
-				op.BranchHash = &bh
-			}
-		case "branch_height":
-			op.BranchHeight, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "branch_depth":
-			op.BranchDepth, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "entrypoint":
-			op.Entrypoint = f.(string)
-		case "entrypoint_id":
-			op.EntrypointId, err = strconv.Atoi(f.(json.Number).String())
 		}
 		if err != nil {
 			return err
@@ -487,9 +476,10 @@ func (c *Client) NewOpQuery() OpQuery {
 
 func (q OpQuery) Run(ctx context.Context) (*OpList, error) {
 	result := &OpList{
-		columns: q.Columns,
-		ctx:     ctx,
-		client:  q.client,
+		columns:  q.Columns,
+		ctx:      ctx,
+		client:   q.client,
+		withPrim: q.Prim,
 	}
 	if err := q.client.QueryTable(ctx, &q.tableQuery, result); err != nil {
 		return nil, err
@@ -575,8 +565,13 @@ func (p OpParams) WithRights() OpParams {
 	return p
 }
 
-func (p OpParams) WithCollapse() OpParams {
-	p.Query.Set("collapse", "1")
+func (p OpParams) WithMerge() OpParams {
+	p.Query.Set("merge", "1")
+	return p
+}
+
+func (p OpParams) WithStorage() OpParams {
+	p.Query.Set("storage", "1")
 	return p
 }
 

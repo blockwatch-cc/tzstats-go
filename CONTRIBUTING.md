@@ -12,7 +12,7 @@ The CLA is meant to protect you and us from legal trouble.
 If you need any help or mentoring getting started or making a PR, please ask on [Discord](https://discord.gg/D5e98Hw).
 
 
-tzstats-go is written in Golang and uses Go modules, so it should work with Go versions >= 1.11.
+tzstats-go is written in Golang and uses Go modules, so it should work with Go versions >= 1.16.
 
 ## Contribution flow
 

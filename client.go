@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Blockwatch Data Inc.
+// Copyright (c) 2020-2022 Blockwatch Data Inc.
 // Author: alex@blockwatch.cc
 
 package tzstats
@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	ClientVersion    = "0.10.0"
+	ClientVersion    = "0.12.0"
 	DefaultLimit     = 50000
 	DefaultCacheSize = 2048
 	userAgent        = "tzstats-go/v" + ClientVersion

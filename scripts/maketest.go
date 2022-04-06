@@ -271,13 +271,13 @@ func fetchContractData(ctx context.Context, c *tzstats.Client, net, hash string)
 		if !nounpack {
 			p = p.WithUnpack()
 		}
-		vals, err := c.GetBigmapValues(ctx, id, p)
+		vals, err := c.ListBigmapValues(ctx, id, p)
 		if err != nil {
 			return err
 		}
 		for _, val := range vals {
 			tc := Testcase{
-				Name:     fmt.Sprintf("%s/%s-%d-%s", net, hash, id, val.KeyHash),
+				Name:     fmt.Sprintf("%s/%s-%d-%s", net, hash, id, val.Hash),
 				NoUnpack: nounpack,
 			}
 			bmtype, _ := script.Script.Code.Storage.FindOpCodes(micheline.T_BIG_MAP)
@@ -361,7 +361,7 @@ func fetchOperationData(ctx context.Context, c *tzstats.Client, net, hash string
 
 	for _, v := range ops {
 		// skip reveals and internal delegations/originations
-		if v.Type != tezos.OpTypeTransaction {
+		if v.Type != tzstats.OpTypeTransaction {
 			continue
 		}
 		// skip non-contract tx
@@ -389,15 +389,15 @@ func fetchOperationData(ctx context.Context, c *tzstats.Client, net, hash string
 
 		// handle call parameters
 		tc := Testcase{
-			Name:     fmt.Sprintf("%s/%s/%d/%d", net, hash, v.OpC, v.OpI),
+			Name:     fmt.Sprintf("%s/%s/%d", net, hash, v.OpP),
 			NoUnpack: nounpack,
 		}
-		if buf, err := script.Entrypoints[v.Parameters.Call].Prim.MarshalJSON(); err == nil {
+		if buf, err := script.Entrypoints[v.Parameters.Entrypoint].Prim.MarshalJSON(); err == nil {
 			tc.Type = json.RawMessage(buf)
 		} else {
 			return err
 		}
-		if buf, err := script.Entrypoints[v.Parameters.Call].Prim.MarshalBinary(); err == nil {
+		if buf, err := script.Entrypoints[v.Parameters.Entrypoint].Prim.MarshalBinary(); err == nil {
 			tc.TypeHex = hex.EncodeToString(buf)
 		} else {
 			return err
@@ -433,7 +433,7 @@ func fetchOperationData(ctx context.Context, c *tzstats.Client, net, hash string
 			idx := sort.Search(len(bmids), func(i int) bool { return bmids[i] >= bmd.Meta.BigmapId })
 
 			tc := Testcase{
-				Name:     fmt.Sprintf("%s/%s/%d/%d/%d-%d", net, hash, v.OpC, v.OpI, i, bmd.Meta.BigmapId),
+				Name:     fmt.Sprintf("%s/%s/%d/%d-%d", net, hash, v.OpP, i, bmd.Meta.BigmapId),
 				NoUnpack: nounpack,
 			}
 			bmtype, _ := script.Script.Code.Storage.FindOpCodes(micheline.T_BIG_MAP)

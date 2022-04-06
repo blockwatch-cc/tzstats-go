@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Blockwatch Data Inc.
+// Copyright (c) 2020-2022 Blockwatch Data Inc.
 // Author: alex@blockwatch.cc
 
 package tzstats
@@ -16,47 +16,33 @@ import (
 
 type Block struct {
 	RowId            uint64                 `json:"row_id"`
-	ParentId         uint64                 `json:"parent_id"`
-	ParentHash       *tezos.BlockHash       `json:"predecessor,omitempty"`
-	FollowerHash     *tezos.BlockHash       `json:"successor,omitempty,notable"`
 	Hash             tezos.BlockHash        `json:"hash"`
-	IsOrphan         bool                   `json:"is_orphan"`
+	ParentHash       *tezos.BlockHash       `json:"predecessor,omitempty,notable"`
+	FollowerHash     *tezos.BlockHash       `json:"successor,omitempty,notable"`
+	Timestamp        time.Time              `json:"time"`
 	Height           int64                  `json:"height"`
 	Cycle            int64                  `json:"cycle"`
 	IsCycleSnapshot  bool                   `json:"is_cycle_snapshot"`
-	Timestamp        time.Time              `json:"time"`
 	Solvetime        int                    `json:"solvetime"`
 	Version          int                    `json:"version"`
-	Fitness          uint64                 `json:"fitness"`
-	Priority         int                    `json:"priority"`
+	Round            int                    `json:"round"`
 	Nonce            string                 `json:"nonce"`
 	VotingPeriodKind tezos.VotingPeriodKind `json:"voting_period_kind"`
 	BakerId          uint64                 `json:"baker_id"`
 	Baker            tezos.Address          `json:"baker"`
-	SlotMask         string                 `json:"slot_mask"`
+	ProposerId       uint64                 `json:"proposer_id"`
+	Proposer         tezos.Address          `json:"proposer"`
 	NSlotsEndorsed   int                    `json:"n_endorsed_slots"`
-	NOps             int                    `json:"n_ops"`
+	NOpsApplied      int                    `json:"n_ops_applied"`
 	NOpsFailed       int                    `json:"n_ops_failed"`
-	NOpsContract     int                    `json:"n_ops_contract"`
-	NContractCalls   int                    `json:"n_contract_calls"`
-	NOpsImplicit     int                    `json:"n_ops_implicit"`
-	NTx              int                    `json:"n_tx"`
-	NActivation      int                    `json:"n_activation"`
-	NSeedNonce       int                    `json:"n_seed_nonce_revelation"`
-	N2Baking         int                    `json:"n_double_baking_evidence"`
-	N2Endorsement    int                    `json:"n_double_endorsement_evidence"`
-	NEndorsement     int                    `json:"n_endorsement"`
-	NDelegation      int                    `json:"n_delegation"`
-	NReveal          int                    `json:"n_reveal"`
-	NOrigination     int                    `json:"n_origination"`
-	NProposal        int                    `json:"n_proposal"`
-	NBallot          int                    `json:"n_ballot"`
-	NRegister        int                    `json:"n_register_constant"`
+	NContractCalls   int                    `json:"n_calls"`
+	NEvents          int                    `json:"n_events"`
 	Volume           float64                `json:"volume"`
 	Fee              float64                `json:"fee"`
 	Reward           float64                `json:"reward"`
 	Deposit          float64                `json:"deposit"`
 	ActivatedSupply  float64                `json:"activated_supply"`
+	MintedSupply     float64                `json:"minted_supply"`
 	BurnedSupply     float64                `json:"burned_supply"`
 	SeenAccounts     int                    `json:"n_accounts"`
 	NewAccounts      int                    `json:"n_new_accounts"`
@@ -65,9 +51,7 @@ type Block struct {
 	FundedAccounts   int                    `json:"n_funded_accounts"`
 	GasLimit         int64                  `json:"gas_limit"`
 	GasUsed          int64                  `json:"gas_used"`
-	GasPrice         float64                `json:"gas_price"`
-	StorageSize      int64                  `json:"storage_size"`
-	TDD              float64                `json:"days_destroyed"`
+	StoragePaid      int64                  `json:"storage_paid"`
 	PctAccountReuse  float64                `json:"pct_account_reuse"`
 	LbEscapeVote     bool                   `json:"lb_esc_vote"`
 	LbEscapeEma      int64                  `json:"lb_esc_ema"`
@@ -79,19 +63,21 @@ type Block struct {
 }
 
 type Head struct {
-	Hash       tezos.BlockHash `json:"hash"`
-	ParentHash tezos.BlockHash `json:"predecessor"`
-	Height     int64           `json:"height"`
-	Cycle      int64           `json:"cycle"`
-	Timestamp  time.Time       `json:"time"`
-	Baker      tezos.Address   `json:"baker"`
-	Priority   int             `json:"priority"`
-	Nonce      string          `json:"nonce"`
-	NOps       int             `json:"n_ops"`
-	Volume     float64         `json:"volume"`
-	Fee        float64         `json:"fee"`
-	Reward     float64         `json:"reward"`
-	GasUsed    int64           `json:"gas_used"`
+	Hash        tezos.BlockHash `json:"hash"`
+	ParentHash  tezos.BlockHash `json:"predecessor"`
+	Height      int64           `json:"height"`
+	Cycle       int64           `json:"cycle"`
+	Timestamp   time.Time       `json:"time"`
+	Baker       tezos.Address   `json:"baker"`
+	Proposer    tezos.Address   `json:"proposer"`
+	Round       int             `json:"round"`
+	Nonce       string          `json:"nonce"`
+	NOpsApplied int             `json:"n_ops_applied"`
+	NOpsFailed  int             `json:"n_ops_failed"`
+	Volume      float64         `json:"volume"`
+	Fee         float64         `json:"fee"`
+	Reward      float64         `json:"reward"`
+	GasUsed     int64           `json:"gas_used"`
 }
 
 type BlockId struct {
@@ -140,24 +126,22 @@ func (b *Block) Head() *Head {
 		ph = b.ParentHash.Clone()
 	}
 	return &Head{
-		Hash:       b.Hash,
-		ParentHash: ph,
-		Height:     b.Height,
-		Cycle:      b.Cycle,
-		Timestamp:  b.Timestamp,
-		Baker:      b.Baker,
-		Priority:   b.Priority,
-		Nonce:      b.Nonce,
-		NOps:       b.NOps,
-		Volume:     b.Volume,
-		Fee:        b.Fee,
-		Reward:     b.Reward,
-		GasUsed:    b.GasUsed,
+		Hash:        b.Hash,
+		ParentHash:  ph,
+		Height:      b.Height,
+		Cycle:       b.Cycle,
+		Timestamp:   b.Timestamp,
+		Baker:       b.Baker,
+		Proposer:    b.Proposer,
+		Round:       b.Round,
+		Nonce:       b.Nonce,
+		NOpsApplied: b.NOpsApplied,
+		NOpsFailed:  b.NOpsFailed,
+		Volume:      b.Volume,
+		Fee:         b.Fee,
+		Reward:      b.Reward,
+		GasUsed:     b.GasUsed,
 	}
-}
-
-func (b *Block) GetEndorsedSlots() []int {
-	return decodeBitVector(b.SlotMask)
 }
 
 func (b *Block) WithColumns(cols ...string) *Block {
@@ -236,8 +220,6 @@ func (b *Block) UnmarshalJSONBrief(data []byte) error {
 		switch v {
 		case "row_id":
 			block.RowId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
-		case "parent_id":
-			block.ParentId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
 		case "hash":
 			block.Hash, err = tezos.ParseBlockHash(f.(string))
 		case "predecessor":
@@ -246,72 +228,46 @@ func (b *Block) UnmarshalJSONBrief(data []byte) error {
 			if err == nil {
 				block.ParentHash = &h
 			}
-		case "is_orphan":
-			block.IsOrphan, err = strconv.ParseBool(f.(json.Number).String())
-		case "height":
-			block.Height, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "cycle":
-			block.Cycle, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "is_cycle_snapshot":
-			block.IsCycleSnapshot, err = strconv.ParseBool(f.(json.Number).String())
 		case "time":
 			var ts int64
 			ts, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 			if err == nil {
 				block.Timestamp = time.Unix(0, ts*1000000).UTC()
 			}
+		case "height":
+			block.Height, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "cycle":
+			block.Cycle, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "is_cycle_snapshot":
+			block.IsCycleSnapshot, err = strconv.ParseBool(f.(json.Number).String())
 		case "solvetime":
 			block.Solvetime, err = strconv.Atoi(f.(json.Number).String())
 		case "version":
 			block.Version, err = strconv.Atoi(f.(json.Number).String())
-		case "fitness":
-			block.Fitness, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
-		case "priority":
-			block.Priority, err = strconv.Atoi(f.(json.Number).String())
+		case "round":
+			block.Round, err = strconv.Atoi(f.(json.Number).String())
 		case "nonce":
 			block.Nonce = f.(string)
 		case "voting_period_kind":
 			block.VotingPeriodKind = tezos.ParseVotingPeriod(f.(string))
 		case "baker_id":
 			block.BakerId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
-		case "slot_mask":
-			block.SlotMask = f.(string)
+		case "baker":
+			block.Baker, err = tezos.ParseAddress(f.(string))
+		case "proposer_id":
+			block.ProposerId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
+		case "proposer":
+			block.Proposer, err = tezos.ParseAddress(f.(string))
 		case "n_endorsed_slots":
 			block.NSlotsEndorsed, err = strconv.Atoi(f.(json.Number).String())
-		case "n_ops":
-			block.NOps, err = strconv.Atoi(f.(json.Number).String())
+		case "n_ops_applied":
+			block.NOpsApplied, err = strconv.Atoi(f.(json.Number).String())
 		case "n_ops_failed":
 			block.NOpsFailed, err = strconv.Atoi(f.(json.Number).String())
-		case "n_ops_contract":
-			block.NOpsContract, err = strconv.Atoi(f.(json.Number).String())
 		case "n_contract_calls":
 			block.NContractCalls, err = strconv.Atoi(f.(json.Number).String())
-		case "n_ops_implicit":
-			block.NOpsImplicit, err = strconv.Atoi(f.(json.Number).String())
-		case "n_tx":
-			block.NTx, err = strconv.Atoi(f.(json.Number).String())
-		case "n_activation":
-			block.NActivation, err = strconv.Atoi(f.(json.Number).String())
-		case "n_seed_nonce_revelation":
-			block.NSeedNonce, err = strconv.Atoi(f.(json.Number).String())
-		case "n_double_baking_evidence":
-			block.N2Baking, err = strconv.Atoi(f.(json.Number).String())
-		case "n_double_endorsement_evidence":
-			block.N2Endorsement, err = strconv.Atoi(f.(json.Number).String())
-		case "n_endorsement":
-			block.NEndorsement, err = strconv.Atoi(f.(json.Number).String())
-		case "n_delegation":
-			block.NDelegation, err = strconv.Atoi(f.(json.Number).String())
-		case "n_reveal":
-			block.NReveal, err = strconv.Atoi(f.(json.Number).String())
-		case "n_origination":
-			block.NOrigination, err = strconv.Atoi(f.(json.Number).String())
-		case "n_proposal":
-			block.NProposal, err = strconv.Atoi(f.(json.Number).String())
-		case "n_ballot":
-			block.NBallot, err = strconv.Atoi(f.(json.Number).String())
-		case "n_register_constant":
-			block.NRegister, err = strconv.Atoi(f.(json.Number).String())
+		case "n_events":
+			block.NEvents, err = strconv.Atoi(f.(json.Number).String())
 		case "volume":
 			block.Volume, err = strconv.ParseFloat(f.(json.Number).String(), 4)
 		case "fee":
@@ -322,6 +278,8 @@ func (b *Block) UnmarshalJSONBrief(data []byte) error {
 			block.Deposit, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "activated_supply":
 			block.ActivatedSupply, err = strconv.ParseFloat(f.(json.Number).String(), 64)
+		case "minted_supply":
+			block.MintedSupply, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "burned_supply":
 			block.BurnedSupply, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "n_accounts":
@@ -338,20 +296,16 @@ func (b *Block) UnmarshalJSONBrief(data []byte) error {
 			block.GasLimit, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "gas_used":
 			block.GasUsed, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "gas_price":
-			block.GasPrice, err = strconv.ParseFloat(f.(json.Number).String(), 64)
-		case "storage_size":
-			block.StorageSize, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "days_destroyed":
-			block.TDD, err = strconv.ParseFloat(f.(json.Number).String(), 64)
+		case "storage_paid":
+			block.StoragePaid, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "pct_account_reuse":
 			block.PctAccountReuse, err = strconv.ParseFloat(f.(json.Number).String(), 64)
-		case "baker":
-			block.Baker, err = tezos.ParseAddress(f.(string))
 		case "lb_esc_vote":
 			block.LbEscapeVote, err = strconv.ParseBool(f.(json.Number).String())
 		case "lb_esc_ema":
 			block.LbEscapeEma, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "protocol":
+			block.Protocol, err = tezos.ParseProtocolHash(f.(string))
 		}
 		if err != nil {
 			return err

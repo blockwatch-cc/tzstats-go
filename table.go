@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Blockwatch Data Inc.
+// Copyright (c) 2020-2022 Blockwatch Data Inc.
 // Author: alex@blockwatch.cc
 
 package tzstats
@@ -20,11 +20,11 @@ type Filter struct {
 
 type FilterList []Filter
 
-func (l *FilterList) Add(mode FilterMode, col string, val interface{}) {
+func (l *FilterList) Add(mode FilterMode, col string, val ...interface{}) {
 	*l = append(*l, Filter{
 		Mode:   mode,
 		Column: col,
-		Value:  val,
+		Value:  ToString(val),
 	})
 }
 
@@ -58,8 +58,8 @@ const (
 )
 
 type TableQuery interface {
-	WithFilter(mode FilterMode, col string, val interface{}) TableQuery
-	ReplaceFilter(mode FilterMode, col string, val interface{}) TableQuery
+	WithFilter(mode FilterMode, col string, val ...interface{}) TableQuery
+	ReplaceFilter(mode FilterMode, col string, val ...interface{}) TableQuery
 	ResetFilter() TableQuery
 	WithLimit(limit int) TableQuery
 	WithColumns(cols ...string) TableQuery
@@ -68,6 +68,7 @@ type TableQuery interface {
 	WithVerbose() TableQuery
 	WithQuiet() TableQuery
 	WithFormat(format FormatType) TableQuery
+	WithPrim() TableQuery
 	Check() error
 	Url() string
 }
@@ -81,6 +82,7 @@ type tableQuery struct {
 	Limit   int
 	Cursor  uint64
 	Verbose bool
+	Prim    bool
 	Filter  FilterList
 	Order   OrderType // asc, desc
 	// OrderBy string // column name
@@ -96,16 +98,16 @@ func newTableQuery(name string) tableQuery {
 	}
 }
 
-func (q *tableQuery) WithFilter(mode FilterMode, col string, val interface{}) TableQuery {
+func (q *tableQuery) WithFilter(mode FilterMode, col string, val ...interface{}) TableQuery {
 	q.Filter.Add(mode, col, val)
 	return q
 }
 
-func (q *tableQuery) ReplaceFilter(mode FilterMode, col string, val interface{}) TableQuery {
+func (q *tableQuery) ReplaceFilter(mode FilterMode, col string, val ...interface{}) TableQuery {
 	for i, v := range q.Filter {
 		if v.Column == col {
 			q.Filter[i].Mode = mode
-			q.Filter[i].Value = val
+			q.Filter[i].Value = ToString(val)
 			return q
 		}
 	}
@@ -150,6 +152,16 @@ func (q *tableQuery) WithQuiet() TableQuery {
 
 func (q *tableQuery) WithFormat(format FormatType) TableQuery {
 	q.Format = format
+	return q
+}
+
+func (q *tableQuery) WithPrim() TableQuery {
+	q.Prim = true
+	return q
+}
+
+func (q *tableQuery) WithCursor(c uint64) TableQuery {
+	q.Cursor = c
 	return q
 }
 

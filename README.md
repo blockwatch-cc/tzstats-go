@@ -1,6 +1,6 @@
 ## tzstats-go – Official Go SDK for the TzStats API
 
-The official Blockwatch Go client library for TzStats. This SDK is free to use under a permissive license and works with the most recent version of the TzStats API v011-2021-11-20. API documentation can be found [here](https://tzstats.com/docs/api).
+The official Blockwatch Go client library for TzStats. This SDK is free to use under a permissive license and works with the most recent version of the TzStats API v012-2022-03-25. API documentation can be found [here](https://tzstats.com/docs/api).
 
 We will maintain this SDK on a regular basis to keep track of changes to the Tezos network and add new API features as they are released. Open-source support is provided through issues in this Github repository. If you are looking for commercial support, please contact us at licensing@blockwatch.cc.
 
@@ -8,10 +8,11 @@ This SDK is based on [TzGo](https://github.com/blockwatch-cc/tzgo), our open-sou
 
 ### TzStats-Go Versioning
 
-As long as TzStats-Go is in beta status we will use major version 0.x. Once interfaces are stable we switch to 1.x. The minor version number expresses compatibility with a Tezos protocol release, e.g. v0.9.x supports all protocols up to Florence, v0.10.x supports Granada.
+As long as TzStats-Go is in beta status we will use major version 0.x. Once interfaces are stable we switch to 1.x. The minor version number expresses compatibility with a Tezos protocol release, e.g. v0.11.x supports Hangzhou, v0.12.x supports Ithacs.
 
 Supported API and Tezos versions
 
+- **v0.12**: API release v012-2022-03-25, Tezos Ithaca
 - **v0.11**: API release v011-2021-11-20, Tezos Hangzhou
 - **v0.10**: API release v010-2021-09-04, Tezos Granada
 - **v0.9**: API release v009-2021-04-16, Tezos Florence
@@ -352,7 +353,7 @@ for {
 
 ## License
 
-The MIT License (MIT) Copyright (c) 2021 Blockwatch Data Inc.
+The MIT License (MIT) Copyright (c) 2021-2022 Blockwatch Data Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

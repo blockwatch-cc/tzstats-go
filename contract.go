@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Blockwatch Data Inc.
+// Copyright (c) 2020-2022 Blockwatch Data Inc.
 // Author: alex@blockwatch.cc
 
 package tzstats
@@ -20,29 +20,30 @@ import (
 )
 
 type Contract struct {
-	RowId         uint64              `json:"row_id"`
-	AccountId     uint64              `json:"account_id"`
+	RowId         uint64              `json:"row_id,omitempty"`
+	AccountId     uint64              `json:"account_id,omitempty"`
 	Address       tezos.Address       `json:"address"`
-	CreatorId     uint64              `json:"creator_id"`
+	CreatorId     uint64              `json:"creator_id,omitempty"`
 	Creator       tezos.Address       `json:"creator"`
-	DelegateId    uint64              `json:"delegate_id,notable"`
-	Delegate      tezos.Address       `json:"delegate,notable"`
+	BakerId       uint64              `json:"baker_id,omitempty,notable"`
+	Baker         tezos.Address       `json:"baker,notable"`
 	FirstSeen     int64               `json:"first_seen"`
 	LastSeen      int64               `json:"last_seen"`
 	FirstSeenTime time.Time           `json:"first_seen_time"`
 	LastSeenTime  time.Time           `json:"last_seen_time"`
 	StorageSize   int64               `json:"storage_size"`
 	StoragePaid   int64               `json:"storage_paid"`
-	Script        *micheline.Script   `json:"script"`
-	Storage       *micheline.Prim     `json:"storage"`
+	Script        *micheline.Script   `json:"script,omitempty"`
+	Storage       *micheline.Prim     `json:"storage,omitempty"`
 	InterfaceHash string              `json:"iface_hash"`
 	CodeHash      string              `json:"code_hash"`
+	StorageHash   string              `json:"storage_hash"`
 	Features      []string            `json:"features"`
 	Interfaces    []string            `json:"interfaces"`
 	CallStats     map[string]int      `json:"call_stats"`
+	NCallsSuccess int                 `json:"n_calls_success,notable"`
+	NCallsFailed  int                 `json:"n_calls_failed,notable"`
 	Bigmaps       map[string]int64    `json:"bigmaps,omitempty,notable"`
-	NOps          int                 `json:"n_ops,omitempty,notable"`
-	NOpsFailed    int                 `json:"n_ops_failed,omitempty,notable"`
 	Metadata      map[string]Metadata `json:"metadata,omitempty,notable"`
 
 	columns []string `json:"-"`
@@ -166,6 +167,8 @@ func (c *Contract) UnmarshalJSONBrief(data []byte) error {
 			cc.InterfaceHash = f.(string)
 		case "code_hash":
 			cc.CodeHash = f.(string)
+		case "storage_hash":
+			cc.StorageHash = f.(string)
 		case "call_stats":
 			var buf []byte
 			buf, err = hex.DecodeString(f.(string))
@@ -178,7 +181,7 @@ func (c *Contract) UnmarshalJSONBrief(data []byte) error {
 						if len(buf) < ep.Id*4+4 {
 							continue
 						}
-						cc.CallStats[ep.Call] = int(binary.BigEndian.Uint32(buf[ep.Id*4:]))
+						cc.CallStats[ep.Name] = int(binary.BigEndian.Uint32(buf[ep.Id*4:]))
 					}
 				} else {
 					for i := 0; i < len(buf); i += 4 {
@@ -207,19 +210,16 @@ type ContractMeta struct {
 }
 
 type ContractParameters struct {
-	Entrypoint string `json:"entrypoint"`
-	Call       string `json:"call"`
-	Branch     string `json:"branch"`
-	Id         int    `json:"id"`
 	ContractValue
+	Entrypoint string `json:"entrypoint"`
 }
 
 type ContractScript struct {
+	Script      *micheline.Script     `json:"script,omitempty"`
 	StorageType micheline.Typedef     `json:"storage_type"`
 	Entrypoints micheline.Entrypoints `json:"entrypoints"`
 	Views       micheline.Views       `json:"views,omitempty"`
 	Bigmaps     map[string]int64      `json:"bigmaps,omitempty"`
-	Script      *micheline.Script     `json:"script,omitempty"`
 }
 
 func (s ContractScript) Types() (param, store micheline.Type, eps micheline.Entrypoints, bigmaps map[int64]micheline.Type) {
@@ -239,14 +239,8 @@ func (s ContractScript) Types() (param, store micheline.Type, eps micheline.Entr
 	return
 }
 
-type ContractStorage struct {
-	Meta    *ContractMeta    `json:"meta,omitempty"`
-	Bigmaps map[string]int64 `json:"bigmaps,omitempty"`
-	ContractValue
-}
-
 type ContractValue struct {
-	Value interface{}     `json:"value"`
+	Value interface{}     `json:"value,omitempty"`
 	Prim  *micheline.Prim `json:"prim,omitempty"`
 }
 
@@ -371,8 +365,13 @@ func (p ContractParams) WithMeta() ContractParams {
 	return p
 }
 
-func (p ContractParams) WithCollapse() ContractParams {
-	p.Query.Set("collapse", "1")
+func (p ContractParams) WithMerge() ContractParams {
+	p.Query.Set("merge", "1")
+	return p
+}
+
+func (p ContractParams) WithStorage() ContractParams {
+	p.Query.Set("storage", "1")
 	return p
 }
 
@@ -437,8 +436,8 @@ func (c *Client) GetContractScript(ctx context.Context, addr tezos.Address, para
 	return cc, nil
 }
 
-func (c *Client) GetContractStorage(ctx context.Context, addr tezos.Address, params ContractParams) (*ContractStorage, error) {
-	cc := &ContractStorage{}
+func (c *Client) GetContractStorage(ctx context.Context, addr tezos.Address, params ContractParams) (*ContractValue, error) {
+	cc := &ContractValue{}
 	u := params.AppendQuery(fmt.Sprintf("/explorer/contract/%s/storage", addr))
 	if err := c.get(ctx, u, nil, cc); err != nil {
 		return nil, err
