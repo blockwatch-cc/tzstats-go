@@ -1,14 +1,14 @@
-## tzstats-go – Official Go SDK for the TzStats API
+## TzStats-Go – Official Go SDK for the TzStats API
 
-The official Blockwatch Go client library for TzStats. This SDK is free to use under a permissive license and works with the most recent version of the TzStats API v012-2022-03-25. API documentation can be found [here](https://tzstats.com/docs/api).
+The official Blockwatch Go client library for TzStats. This SDK is free to use under a permissive license and is compatible with TzStats API versions up to v012-2022-03-25. API documentation can be found [here](https://tzstats.com/docs/api).
 
-We will maintain this SDK on a regular basis to keep track of changes to the Tezos network and add new API features as they are released. Open-source support is provided through issues in this Github repository. If you are looking for commercial support, please contact us at licensing@blockwatch.cc.
+Blockwatch maintains this SDK on a regular basis to keep track of changes to the Tezos network and add new API features as they are released. Open-source support is provided through issues in this Github repository. If you are looking for commercial support, please contact us at licensing@blockwatch.cc.
 
 This SDK is based on [TzGo](https://github.com/blockwatch-cc/tzgo), our open-source Go library for Tezos.
 
 ### TzStats-Go Versioning
 
-As long as TzStats-Go is in beta status we will use major version 0.x. Once interfaces are stable we switch to 1.x. The minor version number expresses compatibility with a Tezos protocol release, e.g. v0.11.x supports Hangzhou, v0.12.x supports Ithacs.
+As long as TzStats-Go is in beta status, we will use major version 0.x. Once interfaces are stable, we switch to 1.x. The minor version number expresses compatibility with a Tezos protocol release, e.g. v0.11.x supports Hangzhou, v0.12.x supports Ithaca.
 
 Supported API and Tezos versions
 
@@ -33,13 +33,13 @@ import (
 
 ### Initializing the TzStats SDK Client
 
-All functions are exported through a `Client` object. For convenience we have defined two default clients `tzstats.DefaultClient` for mainnet and `tzstats.IpfsClient`for our IPFS gateway. You may construct custom clients for different API URLs like so:
+All functions are exported through a `Client` object. For convenience we have defined two default clients: `tzstats.DefaultClient` for mainnet, and `tzstats.IpfsClient` for our IPFS gateway. You may construct custom clients for different API URLs like so:
 
 ```go
 c, err := tzstats.NewClient("https://api.tzstats.com", nil)
 ```
 
-The default configuration should work just fine, but if you need special timeouts, proxy or TLS settings you may use a custom `http.Client` as second argument.
+The default configuration should work just fine but if you need special timeouts, proxy or TLS settings you may use a custom `http.Client` as second argument.
 
 ```go
 import (
@@ -136,7 +136,7 @@ ops, err := client.GetAccountOps(ctx, addr, params)
 
 ### Cursoring through results
 
-The SDK has a convenient way for fetching results longer than the default maximum of 500 entries. We use the more efficient cursor method here, but offset would work similar. An empty result means there is no more data available right now. As the chain grows you can obtain fresh data by using the most recent row_id like shown below
+The SDK has a convenient way for fetching results longer than the default maximum of 500 entries. We use the more efficient cursor method here, but offset would work similar. An empty result means there is no more data available right now. As the chain grows you can obtain fresh data by using the most recent `row_id like shown below
 
 ```go
 import (
@@ -273,7 +273,7 @@ for _, row := range list.Rows {
 
 ### Listing many Bigmap keys with client-side data decoding
 
-Extending the example above, we now use TzGo's Micheline features to decode annotated bigmap data into native Go structs. For efficiency reasons the API only sends binary (hex-encoded) content for smart contract storage. The SDK lets you decodes this into native Micheline primitives or native Go structs for further processing as shown in the example below.
+Extending the example above, we now use TzGo's Micheline features to decode annotated bigmap data into native Go structs. For efficiency reasons, the API only sends binary (hex-encoded) content for smart contract storage. The SDK lets you decodes this into native Micheline primitives or native Go structs for further processing as shown in the example below.
 
 ```go
 import (
@@ -324,7 +324,7 @@ for _, row := range list.Rows {
 
 ### Gracefully handle rate-limits
 
-To avoid excessive overload of our API we limit the rate at which we process your requests. This means your program may from time to time run into a rate limit. To let you gracefully handle retries by waiting until a rate limit resets, we expose the deadline and a done channel much like Go's network context does. Here's how you may use this feature:
+To avoid excessive overload of our API, we limit the rate at which we process your requests. This means your program may from time to time run into a rate limit. To let you gracefully handle retries by waiting until a rate limit resets, we expose the deadline and a done channel much like Go's network context does. Here's how you may use this feature:
 
 ```go
 var acc *tzstats.Account
