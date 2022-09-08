@@ -1,6 +1,6 @@
 ## TzStats-Go – Official Go SDK for the TzStats API
 
-The official Blockwatch Go client library for TzStats. This SDK is free to use under a permissive license and is compatible with TzStats API versions up to v012-2022-03-25. API documentation can be found [here](https://tzstats.com/docs/api).
+The official Blockwatch Go client library for TzStats. This SDK is free to use under a permissive license and works with the most recent version of the TzStats API v014-2022-09-06. API documentation can be found [here](https://tzstats.com/docs/api).
 
 Blockwatch maintains this SDK on a regular basis to keep track of changes to the Tezos network and add new API features as they are released. Open-source support is provided through issues in this Github repository. If you are looking for commercial support, please contact us at licensing@blockwatch.cc.
 
@@ -8,14 +8,16 @@ This SDK is based on [TzGo](https://github.com/blockwatch-cc/tzgo), our open-sou
 
 ### TzStats-Go Versioning
 
-As long as TzStats-Go is in beta status, we will use major version 0.x. Once interfaces are stable, we switch to 1.x. The minor version number expresses compatibility with a Tezos protocol release, e.g. v0.11.x supports Hangzhou, v0.12.x supports Ithaca.
+As long as TzStats-Go is in beta status we will use major version 0.x. Once interfaces are stable we switch to 1.x. The minor version number expresses compatibility with a Tezos protocol release, e.g. v0.12.x supports the Ithaca API, v0.11.x supports Hangzhou.
 
 Supported API and Tezos versions
 
-- **v0.12**: API release v012-2022-03-25, Tezos Ithaca
-- **v0.11**: API release v011-2021-11-20, Tezos Hangzhou
-- **v0.10**: API release v010-2021-09-04, Tezos Granada
-- **v0.9**: API release v009-2021-04-16, Tezos Florence
+- **v0.14**: API release v014-2022-09-06, Tezos Kathmandu
+- **v0.13**: API release v013-2022-06-15, Tezos Jakarta
+- **v0.12**: API release v012-2022-02-22, Tezos Ithaca
+
+Older API versions are no longer supported. Please use an older version tag.
+
 
 ### Installation
 
@@ -136,7 +138,7 @@ ops, err := client.GetAccountOps(ctx, addr, params)
 
 ### Cursoring through results
 
-The SDK has a convenient way for fetching results longer than the default maximum of 500 entries. We use the more efficient cursor method here, but offset would work similar. An empty result means there is no more data available right now. As the chain grows you can obtain fresh data by using the most recent `row_id like shown below
+The SDK has a convenient way for fetching results longer than the default maximum of 500 entries. We use the more efficient cursor method here, but offset would work similar. An empty result means there is no more data available right now. As the chain grows you can obtain fresh data by using the most recent `row_id` like shown below
 
 ```go
 import (
