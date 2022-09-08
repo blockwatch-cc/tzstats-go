@@ -29,7 +29,7 @@ Then import, using
 
 ```go
 import (
-	"blockwatch.cc/tzstats-go"
+	"blockwatch.cc/tzstats-go/tzstats"
 )
 ```
 
@@ -50,7 +50,7 @@ import (
 	"net"
 	"net/http"
 
-	"blockwatch.cc/tzstats-go"
+	"blockwatch.cc/tzstats-go/tzstats"
 )
 
 
@@ -79,7 +79,7 @@ func main() {
 ```go
 import (
   "context"
-  "blockwatch.cc/tzstats-go"
+  "blockwatch.cc/tzstats-go/tzstats"
   "blockwatch.cc/tzgo/tezos"
 )
 
@@ -98,8 +98,8 @@ a, err := client.GetAccount(ctx, addr, params)
 ```go
 import (
   "context"
-  "blockwatch.cc/tzgo"
-  "blockwatch.cc/tzstats-go"
+  "blockwatch.cc/tzgo/tezos"
+  "blockwatch.cc/tzstats-go/tzstats"
 )
 
 // use default Mainnet client
@@ -122,7 +122,7 @@ xtzPool, ok := raw.GetBig("xtzPool")
 ```go
 import (
   "context"
-  "blockwatch.cc/tzstats-go"
+  "blockwatch.cc/tzstats-go/tzstats"
   "blockwatch.cc/tzgo/tezos"
 )
 
@@ -143,7 +143,7 @@ The SDK has a convenient way for fetching results longer than the default maximu
 ```go
 import (
   "context"
-  "blockwatch.cc/tzstats-go"
+  "blockwatch.cc/tzstats-go/tzstats"
   "blockwatch.cc/tzgo/tezos"
 )
 
@@ -174,8 +174,8 @@ for {
 ```go
 import (
   "context"
-  "blockwatch.cc/tzgo"
-  "blockwatch.cc/tzstats-go"
+  "blockwatch.cc/tzgo/tezos"
+  "blockwatch.cc/tzstats-go/tzstats"
 )
 
 // use default Mainnet client
@@ -207,7 +207,7 @@ err := raw.Unmarshal(dexterPool)
 ```go
 import (
   "context"
-  "blockwatch.cc/tzstats-go"
+  "blockwatch.cc/tzstats-go/tzstats"
 )
 
 type HicNFT struct {
@@ -249,7 +249,7 @@ The [TzStats Table API](https://tzstats.com/docs/api#table-endpoints) is the fas
 ```go
 import (
   "context"
-  "blockwatch.cc/tzstats-go"
+  "blockwatch.cc/tzstats-go/tzstats"
 )
 
 client := tzstats.DefaultClient
@@ -280,7 +280,7 @@ Extending the example above, we now use TzGo's Micheline features to decode anno
 ```go
 import (
   "context"
-  "blockwatch.cc/tzstats-go"
+  "blockwatch.cc/tzstats-go/tzstats"
 )
 
 type HicNFT struct {
