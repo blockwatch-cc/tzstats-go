@@ -4,13 +4,13 @@
 package tzstats
 
 import (
-	logpkg "github.com/echa/log"
+	"github.com/echa/log"
 )
 
 // log is a logger that is initialized with no output filters.  This
 // means the package will not perform any logging by default until the caller
 // requests it.
-var log logpkg.Logger
+var defaultLog log.Logger
 
 // The default amount of logging is none.
 func init() {
@@ -20,12 +20,12 @@ func init() {
 // DisableLog disables all library log output.  Logging output is disabled
 // by default until UseLogger is called.
 func DisableLog() {
-	log = logpkg.Disabled
+	defaultLog = log.Disabled
 }
 
 // UseLogger uses a specified Logger to output package logging info.
-func UseLogger(logger logpkg.Logger) {
-	log = logger
+func UseLogger(logger log.Logger) {
+	defaultLog = logger
 }
 
 // LogClosure is a closure that can be printed with %v to be used to

@@ -7,8 +7,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net"
 	"net/http"
+	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -99,7 +103,9 @@ func newHttpError(resp *http.Response, buf []byte, req string) error {
 		json.Unmarshal(buf, &val)
 		buf, _ = json.Marshal(val)
 	} else {
-		buf = bytes.ReplaceAll(bytes.TrimRight(buf[:min(len(buf), 512)], "\x00"), []byte{'\n'}, []byte{})
+		buf = bytes.TrimRight(buf[:min(len(buf), 512)], "\x00")
+		buf = bytes.ReplaceAll(buf, []byte{'\r'}, []byte{})
+		buf = bytes.ReplaceAll(buf, []byte{'\n'}, []byte{})
 	}
 	return HttpError{
 		Status:  resp.StatusCode,
@@ -196,4 +202,34 @@ func ErrorStatus(err error) int {
 	default:
 		return 0
 	}
+}
+
+func isNetError(err error) bool {
+	if err == nil {
+		return false
+	}
+	// direct type
+	switch err.(type) {
+	case *net.OpError:
+		return true
+	case *os.SyscallError:
+		return true
+	case *url.Error:
+		return true
+	}
+	// wrapped
+	var (
+		neterr *net.OpError
+		oserr  *os.SyscallError
+		urlerr *url.Error
+	)
+	switch {
+	case errors.As(err, &neterr):
+		return true
+	case errors.As(err, &oserr):
+		return true
+	case errors.As(err, &urlerr):
+		return true
+	}
+	return false
 }

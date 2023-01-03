@@ -15,11 +15,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/echa/log"
 	lru "github.com/hashicorp/golang-lru"
 )
 
 var (
-	ClientVersion    = "0.14.0"
+	ClientVersion    = "0.15.0"
 	DefaultLimit     = 50000
 	DefaultCacheSize = 2048
 	userAgent        = "tzstats-go/v" + ClientVersion
@@ -30,15 +31,19 @@ var (
 func init() {
 	DefaultClient, _ = NewClient("https://api.tzstats.com", nil)
 	IpfsClient, _ = NewClient("https://ipfs.tzstats.com", nil)
-	IpfsClient.SetTimeout(60 * time.Second)
+	IpfsClient.WithTimeout(60 * time.Second)
 }
 
 type Client struct {
-	httpClient *http.Client
-	params     Params
+	transport  *http.Client
+	log        log.Logger
+	base       Params
+	market     Params
 	cache      *lru.TwoQueueCache
 	headers    http.Header
-	UserAgent  string
+	userAgent  string
+	numRetries int
+	retryDelay time.Duration
 }
 
 func NewClient(url string, httpClient *http.Client) (*Client, error) {
@@ -67,11 +72,15 @@ func NewClient(url string, httpClient *http.Client) (*Client, error) {
 	}
 	cache, _ := lru.New2Q(sz)
 	return &Client{
-		httpClient: httpClient,
-		params:     params,
+		transport:  httpClient,
+		log:        defaultLog,
+		base:       params,
+		market:     params,
 		cache:      cache,
 		headers:    make(http.Header),
-		UserAgent:  userAgent,
+		userAgent:  userAgent,
+		numRetries: 0,
+		retryDelay: 0,
 	}, nil
 }
 
@@ -79,8 +88,63 @@ func (c *Client) DefaultHeaders() http.Header {
 	return c.headers
 }
 
+func (c *Client) WithHeader(key, value string) *Client {
+	c.headers.Set(key, value)
+	return c
+}
+
+func (c *Client) WithUserAgent(s string) *Client {
+	c.userAgent = s
+	return c
+}
+
+func (c *Client) WithApiKey(s string) *Client {
+	if s != "" {
+		c.headers.Set("X-Api-Key", s)
+	} else {
+		c.headers.Del("X-Api-Key")
+	}
+	return c
+}
+
+func (c *Client) WithMarketUrl(url string) *Client {
+	if params, err := ParseParams(url); err == nil {
+		c.market = params
+	}
+	return c
+}
+
 func (c *Client) WithTLS(tc *tls.Config) *Client {
-	c.httpClient.Transport.(*http.Transport).TLSClientConfig = tc
+	c.transport.Transport.(*http.Transport).TLSClientConfig = tc
+	return c
+}
+
+func (c *Client) WithTimeout(d time.Duration) *Client {
+	c.transport.Transport.(*http.Transport).ResponseHeaderTimeout = d
+	c.transport.Timeout = d
+	return c
+}
+
+func (c *Client) WithRetry(num int, delay time.Duration) *Client {
+	c.numRetries = num
+	if num < 0 {
+		c.numRetries = int(^uint(0)>>1) - 1 // max int - 1
+	}
+	c.retryDelay = delay
+	return c
+}
+
+func (c *Client) WithLogger(log log.Logger) *Client {
+	c.log = log
+	return c
+}
+
+func (c *Client) WithCacheSize(sz int) *Client {
+	if sz < 2 {
+		sz = 2
+	}
+	cache, _ := lru.New2Q(sz)
+	c.cache = cache
 	return c
 }
 
@@ -88,10 +152,12 @@ func (c *Client) UseScriptCache(cache *lru.TwoQueueCache) {
 	c.cache = cache
 }
 
-func (c *Client) SetTimeout(d time.Duration) *Client {
-	c.httpClient.Transport.(*http.Transport).ResponseHeaderTimeout = d
-	c.httpClient.Timeout = d
-	return c
+func (c Client) Retries() int {
+	return c.numRetries
+}
+
+func (c Client) RetryDelay() time.Duration {
+	return c.retryDelay
 }
 
 func (c *Client) get(ctx context.Context, path string, headers http.Header, result interface{}) error {
@@ -120,7 +186,7 @@ func (c *Client) call(ctx context.Context, method, path string, headers http.Hea
 
 func (c *Client) callAsync(ctx context.Context, method, path string, headers http.Header, data, result interface{}) FutureResult {
 	if !strings.HasPrefix(path, "http") {
-		path = c.params.Url(path)
+		path = c.base.Url(path)
 	}
 
 	req, err := c.newRequest(ctx, method, path, headers, data, result)
@@ -144,7 +210,7 @@ func (c *Client) newRequest(ctx context.Context, method, path string, headers ht
 	if headers == nil {
 		headers = make(http.Header)
 	}
-	headers.Set("User-Agent", c.UserAgent)
+	headers.Set("User-Agent", c.userAgent)
 
 	// copy default headers
 	for n, v := range c.headers {
@@ -171,7 +237,7 @@ func (c *Client) newRequest(ctx context.Context, method, path string, headers ht
 	}
 
 	// create http request
-	log.Debugf("%s %s", method, path)
+	c.log.Debugf("%s %s", method, path)
 	req, err := http.NewRequest(method, path, body)
 	if err != nil {
 		return nil, err
@@ -204,19 +270,41 @@ func (c *Client) newRequest(ctx context.Context, method, path string, headers ht
 // provided response channel.
 func (c *Client) handleRequest(req *request) {
 	// only dump content-type application/json
-	log.Trace(newLogClosure(func() string {
+	c.log.Trace(newLogClosure(func() string {
 		r, _ := httputil.DumpRequestOut(req.httpRequest, req.httpRequest.Header.Get("Content-Type") == "application/json")
 		return string(r)
 	}))
 
-	resp, err := c.httpClient.Do(req.httpRequest)
+	var (
+		resp *http.Response
+		err  error
+	)
+	for retries := c.numRetries + 1; retries > 0; retries-- {
+		resp, err = c.transport.Do(req.httpRequest)
+		if err == nil {
+			break
+		}
+		if !isNetError(err) {
+			break
+		}
+		select {
+		case <-req.httpRequest.Context().Done():
+			req.responseChan <- &response{
+				err:     req.httpRequest.Context().Err(),
+				request: req.String(),
+			}
+			return
+		case <-time.After(c.retryDelay):
+			// continue
+		}
+	}
 	if err != nil {
 		req.responseChan <- &response{err: err, request: req.String()}
 		return
 	}
 	defer resp.Body.Close()
 
-	log.Tracef("response: %s", newLogClosure(func() string {
+	c.log.Tracef("response: %s", newLogClosure(func() string {
 		s, _ := httputil.DumpResponse(resp, isTextResponse(resp))
 		return string(s)
 	}))
@@ -224,16 +312,16 @@ func (c *Client) handleRequest(req *request) {
 	// process as stream when response interface is an io.Writer
 	if resp.StatusCode == http.StatusOK && req.responseVal != nil {
 		if stream, ok := req.responseVal.(io.Writer); ok {
-			// log.Tracef("start streaming response")
+			// c.log.Tracef("start streaming response")
 			// forward stream
 			_, err := io.Copy(stream, resp.Body)
 			// close consumer if possible
 			if closer, ok := req.responseVal.(io.WriteCloser); ok {
-				// log.Tracef("closing stream after %d bytes", n)
+				// c.log.Tracef("closing stream after %d bytes", n)
 				closer.Close()
 			}
-			// log.Tracef("response headers: %#v", resp.Header)
-			// log.Tracef("response trailer: %#v", resp.Trailer)
+			// c.log.Tracef("response headers: %#v", resp.Header)
+			// c.log.Tracef("response trailer: %#v", resp.Trailer)
 			req.responseChan <- &response{
 				status:  resp.StatusCode,
 				request: req.String(),

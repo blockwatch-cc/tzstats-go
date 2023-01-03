@@ -38,6 +38,7 @@ type Block struct {
 	NContractCalls   int                    `json:"n_calls"`
 	NRollupCalls     int                    `json:"n_rollup_calls"`
 	NEvents          int                    `json:"n_events"`
+	NTx              int                    `json:"n_tx"`
 	Volume           float64                `json:"volume"`
 	Fee              float64                `json:"fee"`
 	Reward           float64                `json:"reward"`
@@ -269,6 +270,8 @@ func (b *Block) UnmarshalJSONBrief(data []byte) error {
 			block.NContractCalls, err = strconv.Atoi(f.(json.Number).String())
 		case "n_rollup_calls":
 			block.NRollupCalls, err = strconv.Atoi(f.(json.Number).String())
+		case "n_tx":
+			block.NTx, err = strconv.Atoi(f.(json.Number).String())
 		case "n_events":
 			block.NEvents, err = strconv.Atoi(f.(json.Number).String())
 		case "volume":
@@ -329,7 +332,7 @@ func (c *Client) NewBlockQuery() BlockQuery {
 	}
 	q := tableQuery{
 		client:  c,
-		Params:  c.params.Copy(),
+		Params:  c.base.Copy(),
 		Table:   "block",
 		Format:  FormatJSON,
 		Limit:   DefaultLimit,

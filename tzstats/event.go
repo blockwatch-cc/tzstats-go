@@ -145,7 +145,7 @@ func (c *Client) NewEventQuery() EventQuery {
 	}
 	q := tableQuery{
 		client:  c,
-		Params:  c.params.Copy(),
+		Params:  c.base.Copy(),
 		Table:   "event",
 		Format:  FormatJSON,
 		Limit:   DefaultLimit,

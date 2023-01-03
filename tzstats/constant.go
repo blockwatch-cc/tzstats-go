@@ -175,7 +175,7 @@ func (c *Client) NewConstantQuery() ConstantQuery {
 	}
 	q := tableQuery{
 		client:  c,
-		Params:  c.params.Copy(),
+		Params:  c.base.Copy(),
 		Table:   "constant",
 		Format:  FormatJSON,
 		Limit:   DefaultLimit,

@@ -45,6 +45,13 @@ type Metadata struct {
 	Contents map[string]interface{} `json:"-"`
 }
 
+func NewMetadata(a tezos.Address) *Metadata {
+	return &Metadata{
+		Address:  a,
+		Contents: make(map[string]interface{}),
+	}
+}
+
 func (m Metadata) ID() string {
 	id := m.Address.String()
 	if m.AssetId != nil {

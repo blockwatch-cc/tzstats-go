@@ -240,7 +240,7 @@ func (c *Client) NewChainQuery() ChainQuery {
 	}
 	q := tableQuery{
 		client:  c,
-		Params:  c.params.Copy(),
+		Params:  c.base.Copy(),
 		Table:   "chain",
 		Format:  FormatJSON,
 		Limit:   DefaultLimit,

@@ -33,10 +33,19 @@ type Ticker struct {
 
 func (c *Client) GetTickers(ctx context.Context) ([]Ticker, error) {
 	ticks := make([]Ticker, 0)
-	if err := c.get(ctx, "/markets/tickers", nil, &ticks); err != nil {
+	if err := c.get(ctx, c.market.Url("/markets/tickers"), nil, &ticks); err != nil {
 		return nil, err
 	}
 	return ticks, nil
+}
+
+func (c *Client) GetTicker(ctx context.Context, market, pair string) (*Ticker, error) {
+	var tick Ticker
+	u := c.market.Url(fmt.Sprintf("/markets/%s/%s/ticker", market, pair))
+	if err := c.get(ctx, u, nil, &tick); err != nil {
+		return nil, err
+	}
+	return &tick, nil
 }
 
 type Candle struct {
@@ -242,7 +251,7 @@ func (c *Client) ListCandles(ctx context.Context, args CandleArgs) (*CandleList,
 		Rows:    make([]Candle, 0),
 		Columns: args.Columns,
 	}
-	if err := c.get(ctx, args.Url(), nil, resp); err != nil {
+	if err := c.get(ctx, c.market.Url(args.Url()), nil, resp); err != nil {
 		return nil, err
 	}
 	return resp, nil

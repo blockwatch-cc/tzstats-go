@@ -123,7 +123,6 @@ func (l *CycleRightsList) UnmarshalJSON(data []byte) error {
 	if data[0] != '[' {
 		return fmt.Errorf("CycleRightsList: expected JSON array")
 	}
-	// log.Debugf("decode rights list from %d bytes", len(data))
 	array := make([]json.RawMessage, 0)
 	if err := json.Unmarshal(data, &array); err != nil {
 		return err
@@ -212,7 +211,7 @@ func (c *Client) NewCycleRightsQuery() CycleRightsQuery {
 	}
 	q := tableQuery{
 		client:  c,
-		Params:  c.params.Copy(),
+		Params:  c.base.Copy(),
 		Table:   "rights",
 		Format:  FormatJSON,
 		Limit:   DefaultLimit,

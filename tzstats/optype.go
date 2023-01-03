@@ -41,6 +41,8 @@ const (
 	OpTypeRollupTransaction                  // 26 v013 rollup
 	OpTypeVdfRevelation                      // 27 v014
 	OpTypeIncreasePaidStorage                // 28 v014
+	OpTypeDrainDelegate                      // 29 v015
+	OpTypeUpdateConsensusKey                 // 30 v015
 	OpTypeBatch                = 254         // API output only
 	OpTypeInvalid              = 255
 )
@@ -77,6 +79,8 @@ var (
 		OpTypeRollupTransaction:    "rollup_transaction",
 		OpTypeVdfRevelation:        "vdf_revelation",
 		OpTypeIncreasePaidStorage:  "increase_paid_storage",
+		OpTypeDrainDelegate:        "drain_delegate",
+		OpTypeUpdateConsensusKey:   "update_consensus_key",
 		OpTypeInvalid:              "",
 	}
 	opTypeReverseStrings = make(map[string]OpType)

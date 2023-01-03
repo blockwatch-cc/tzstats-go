@@ -73,15 +73,15 @@ type Op struct {
 	Data         json.RawMessage        `json:"data,omitempty"`
 	Parameters   *ContractParameters    `json:"parameters,omitempty"` // transaction
 	StorageHash  uint64                 `json:"storage_hash,omitempty"`
+	CodeHash     string                 `json:"code_hash,omitempty"`
 	Errors       json.RawMessage        `json:"errors,omitempty"`
-	TDD          float64                `json:"days_destroyed"`
 	Sender       tezos.Address          `json:"sender"`
 	Receiver     tezos.Address          `json:"receiver"`
 	Creator      tezos.Address          `json:"creator"` // origination
 	Baker        tezos.Address          `json:"baker"`   // delegation, origination
 	Block        tezos.BlockHash        `json:"block"`
 	Entrypoint   string                 `json:"entrypoint,omitempty"`
-	BigmapDiff   []BigmapUpdate         `json:"big_map_diff,omitempty"` // transaction, origination
+	BigmapDiff   BigmapUpdates          `json:"big_map_diff,omitempty"` // transaction, origination
 	BigmapEvents micheline.BigmapEvents `json:"-"`                      // raw, transaction, origination
 
 	// explorer or ZMQ APIs only
@@ -90,6 +90,7 @@ type Op struct {
 	Offender      tezos.Address       `json:"offender"           tzstats:"notable"` // double_x
 	Accuser       tezos.Address       `json:"accuser"            tzstats:"notable"` // double_x
 	Storage       *ContractValue      `json:"storage,omitempty"  tzstats:"notable"` // transaction, origination
+	Script        *micheline.Script   `json:"script,omitempty"   tzstats:"notable"` // origination
 	Power         int                 `json:"power,omitempty"    tzstats:"notable"` // endorsement
 	Limit         *float64            `json:"limit,omitempty"    tzstats:"notable"` // set deposits limit
 	Confirmations int64               `json:"confirmations"      tzstats:"notable"`
@@ -98,6 +99,7 @@ type Op struct {
 	Internal      []*Op               `json:"internal,omitempty" tzstats:"notable"`
 	Metadata      map[string]Metadata `json:"metadata,omitempty" tzstats:"notable"`
 	Events        []Event             `json:"events,omitempty"   tzstats:"notable"`
+	// TicketUpdates []TicketUpdate      `json:"ticket_updates,omitempty"   tzstats:"notable"`
 
 	columns  []string                 // optional, for decoding bulk arrays
 	param    micheline.Type           // optional, may be decoded from script
@@ -106,6 +108,7 @@ type Op struct {
 	bigmaps  map[int64]micheline.Type // optional, may be decoded from script
 	withPrim bool
 	withMeta bool
+	noFail   bool
 	onError  int
 }
 
@@ -135,6 +138,27 @@ func (o *Op) Content() []*Op {
 		list = append(list, o.Internal...)
 	}
 	return list
+}
+
+func (o *Op) Addresses() *tezos.AddressSet {
+	set := tezos.NewAddressSet()
+	for _, op := range o.Content() {
+		for _, v := range []tezos.Address{
+			op.Sender,
+			op.Receiver,
+			op.Creator,
+			op.Baker,
+			op.PrevBaker,
+			op.Source,
+			op.Offender,
+			op.Accuser,
+		} {
+			if v.IsValid() {
+				set.AddUnique(v)
+			}
+		}
+	}
+	return set
 }
 
 func (o *Op) Cursor() uint64 {
@@ -210,6 +234,7 @@ func (og OpGroup) Costs() Costs {
 type OpList struct {
 	Rows     []*Op
 	withPrim bool
+	noFail   bool
 	columns  []string
 	ctx      context.Context
 	client   *Client
@@ -241,6 +266,7 @@ func (l *OpList) UnmarshalJSON(data []byte) error {
 	for _, v := range array {
 		op := &Op{
 			withPrim: l.withPrim,
+			noFail:   l.noFail,
 			columns:  l.columns,
 		}
 		// we may need contract scripts
@@ -352,8 +378,6 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 			op.Deposit, err = f.(json.Number).Float64()
 		case "burned":
 			op.Burned, err = f.(json.Number).Float64()
-		case "days_destroyed":
-			op.TDD, err = f.(json.Number).Float64()
 		case "sender_id":
 			op.SenderId, err = strconv.ParseUint(f.(json.Number).String(), 10, 64)
 		case "receiver_id":
@@ -435,7 +459,7 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 				op.BigmapEvents = make(micheline.BigmapEvents, 0)
 				err = op.BigmapEvents.UnmarshalBinary(buf)
 				if err == nil {
-					op.BigmapDiff = make([]BigmapUpdate, 0, len(op.BigmapEvents))
+					op.BigmapDiff = make(BigmapUpdates, 0, len(op.BigmapEvents))
 					if o.withPrim {
 						// decode prim only
 						for _, v := range op.BigmapEvents {
@@ -514,8 +538,10 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 					}
 				}
 			}
+		case "code_hash":
+			op.CodeHash = f.(string)
 		}
-		if err != nil {
+		if err != nil && !op.noFail {
 			return err
 		}
 	}
@@ -525,6 +551,12 @@ func (o *Op) UnmarshalJSONBrief(data []byte) error {
 
 type OpQuery struct {
 	tableQuery
+	NoFail bool
+}
+
+func (q OpQuery) WithNoFail() OpQuery {
+	q.NoFail = true
+	return q
 }
 
 func (c *Client) NewOpQuery() OpQuery {
@@ -534,7 +566,7 @@ func (c *Client) NewOpQuery() OpQuery {
 	}
 	q := tableQuery{
 		client:  c,
-		Params:  c.params.Copy(),
+		Params:  c.base.Copy(),
 		Table:   "op",
 		Format:  FormatJSON,
 		Limit:   DefaultLimit,
@@ -542,7 +574,7 @@ func (c *Client) NewOpQuery() OpQuery {
 		Columns: tinfo.FilteredAliases("notable"),
 		Filter:  make(FilterList, 0),
 	}
-	return OpQuery{q}
+	return OpQuery{q, false}
 }
 
 func (q OpQuery) Run(ctx context.Context) (*OpList, error) {
@@ -551,6 +583,7 @@ func (q OpQuery) Run(ctx context.Context) (*OpList, error) {
 		ctx:      ctx,
 		client:   q.client,
 		withPrim: q.Prim,
+		noFail:   q.NoFail,
 	}
 	if err := q.client.QueryTable(ctx, &q.tableQuery, result); err != nil {
 		return nil, err

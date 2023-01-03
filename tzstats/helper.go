@@ -195,6 +195,16 @@ func getPathBig(val interface{}, path string) (*big.Int, bool) {
 	return n, err == nil
 }
 
+func getPathZ(val interface{}, path string) (tezos.Z, bool) {
+	str, ok := getPathString(val, path)
+	if !ok {
+		return tezos.Zero, ok
+	}
+	n := new(big.Int)
+	_, err := fmt.Sscan(str, n)
+	return tezos.NewBigZ(n), err == nil
+}
+
 func getPathTime(val interface{}, path string) (time.Time, bool) {
 	str, ok := getPathString(val, path)
 	if !ok {

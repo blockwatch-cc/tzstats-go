@@ -228,7 +228,7 @@ func (c *Client) NewBigmapQuery() BigmapQuery {
 	}
 	q := tableQuery{
 		client:  c,
-		Params:  c.params.Copy(),
+		Params:  c.base.Copy(),
 		Table:   "bigmaps",
 		Format:  FormatJSON,
 		Limit:   DefaultLimit,

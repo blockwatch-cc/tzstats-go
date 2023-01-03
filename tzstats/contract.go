@@ -20,38 +20,53 @@ import (
 )
 
 type Contract struct {
-	RowId         uint64              `json:"row_id,omitempty"`
-	AccountId     uint64              `json:"account_id,omitempty"`
-	Address       tezos.Address       `json:"address"`
-	CreatorId     uint64              `json:"creator_id,omitempty"`
-	Creator       tezos.Address       `json:"creator"`
-	BakerId       uint64              `json:"baker_id,omitempty" tzstats:"notable"`
-	Baker         tezos.Address       `json:"baker"              tzstats:"notable"`
-	FirstSeen     int64               `json:"first_seen"`
-	LastSeen      int64               `json:"last_seen"`
-	FirstSeenTime time.Time           `json:"first_seen_time"`
-	LastSeenTime  time.Time           `json:"last_seen_time"`
-	StorageSize   int64               `json:"storage_size"`
-	StoragePaid   int64               `json:"storage_paid"`
-	Script        *micheline.Script   `json:"script,omitempty"`
-	Storage       *micheline.Prim     `json:"storage,omitempty"`
-	InterfaceHash string              `json:"iface_hash"`
-	CodeHash      string              `json:"code_hash"`
-	StorageHash   string              `json:"storage_hash"`
-	Features      []string            `json:"features"`
-	Interfaces    []string            `json:"interfaces"`
-	CallStats     map[string]int      `json:"call_stats"`
-	NCallsSuccess int                 `json:"n_calls_success"     tzstats:"notable"`
-	NCallsFailed  int                 `json:"n_calls_failed"      tzstats:"notable"`
-	Bigmaps       map[string]int64    `json:"bigmaps,omitempty"   tzstats:"notable"`
-	Metadata      map[string]Metadata `json:"metadata,omitempty"  tzstats:"notable"`
+	RowId         uint64               `json:"row_id,omitempty"`
+	AccountId     uint64               `json:"account_id,omitempty"`
+	Address       tezos.Address        `json:"address"`
+	CreatorId     uint64               `json:"creator_id,omitempty"`
+	Creator       tezos.Address        `json:"creator"`
+	BakerId       uint64               `json:"baker_id,omitempty" tzstats:"notable"`
+	Baker         tezos.Address        `json:"baker"              tzstats:"notable"`
+	FirstSeen     int64                `json:"first_seen"`
+	LastSeen      int64                `json:"last_seen"`
+	FirstSeenTime time.Time            `json:"first_seen_time"`
+	LastSeenTime  time.Time            `json:"last_seen_time"`
+	StorageSize   int64                `json:"storage_size"`
+	StoragePaid   int64                `json:"storage_paid"`
+	TotalFeesUsed float64              `json:"total_fees_used"    tzstats:"notable"`
+	Script        *micheline.Script    `json:"script,omitempty"`
+	Storage       *micheline.Prim      `json:"storage,omitempty"`
+	InterfaceHash string               `json:"iface_hash"`
+	CodeHash      string               `json:"code_hash"`
+	StorageHash   string               `json:"storage_hash"`
+	Features      []string             `json:"features"`
+	Interfaces    []string             `json:"interfaces"`
+	CallStats     map[string]int       `json:"call_stats"`
+	NCallsIn      int                  `json:"n_calls_in"          tzstats:"notable"`
+	NCallsOut     int                  `json:"n_calls_out"         tzstats:"notable"`
+	NCallsFailed  int                  `json:"n_calls_failed"      tzstats:"notable"`
+	Bigmaps       map[string]int64     `json:"bigmaps,omitempty"   tzstats:"notable"`
+	Metadata      map[string]*Metadata `json:"metadata,omitempty"  tzstats:"notable"`
 
 	columns []string `json:"-"`
 }
 
-func (c Contract) Meta() *Metadata {
-	m := c.Metadata[c.Address.String()]
-	return &m
+func ParseU64(s string) (u uint64) {
+	buf, _ := hex.DecodeString(s)
+	u = binary.BigEndian.Uint64(buf[:8])
+	return
+}
+
+func (c *Contract) Meta() *Metadata {
+	m, ok := c.Metadata[c.Address.String()]
+	if !ok {
+		m = NewMetadata(c.Address)
+		if c.Metadata == nil {
+			c.Metadata = make(map[string]*Metadata)
+		}
+		c.Metadata[c.Address.String()] = m
+	}
+	return m
 }
 
 type ContractList struct {
@@ -288,6 +303,10 @@ func (v ContractValue) GetBig(path string) (*big.Int, bool) {
 	return getPathBig(v.Value, path)
 }
 
+func (v ContractValue) GetZ(path string) (tezos.Z, bool) {
+	return getPathZ(v.Value, path)
+}
+
 func (v ContractValue) GetTime(path string) (time.Time, bool) {
 	return getPathTime(v.Value, path)
 }
@@ -391,7 +410,7 @@ func (c *Client) NewContractQuery() ContractQuery {
 	}
 	q := tableQuery{
 		client:  c,
-		Params:  c.params.Copy(),
+		Params:  c.base.Copy(),
 		Table:   "contract",
 		Format:  FormatJSON,
 		Limit:   DefaultLimit,
@@ -465,11 +484,17 @@ func (c *Client) loadCachedContractScript(ctx context.Context, addr tezos.Addres
 			return script.(*ContractScript), nil
 		}
 	}
-	log.Tracef("Loading contract %s", addr)
+	c.log.Tracef("Loading contract %s", addr)
 	script, err := c.GetContractScript(ctx, addr, NewContractParams().WithPrim())
 	if err != nil {
 		return nil, err
 	}
+	// strip code
+	script.Script.Code.Code = micheline.Prim{}
+	script.Script.Code.View = micheline.Prim{}
+	// fill bigmap type info
+	script.BigmapNames = script.Script.Bigmaps()
+	script.BigmapTypes = script.Script.BigmapTypes()
 	script.BigmapTypesById = make(map[int64]micheline.Type)
 	for n, v := range script.BigmapTypes {
 		id := script.BigmapNames[n]
@@ -492,8 +517,8 @@ func (c *Client) AddCachedScript(addr tezos.Address, script *micheline.Script) {
 		StorageType:     script.StorageType().Typedef(""),
 		Entrypoints:     eps,
 		Views:           views,
-		BigmapNames:     script.BigmapsByName(),
-		BigmapTypes:     script.BigmapTypesByName(),
+		BigmapNames:     script.Bigmaps(),
+		BigmapTypes:     script.BigmapTypes(),
 		BigmapTypesById: make(map[int64]micheline.Type),
 	}
 	for n, v := range s.BigmapTypes {

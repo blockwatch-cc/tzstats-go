@@ -43,6 +43,7 @@ type Account struct {
 	TotalSent          float64             `json:"total_sent"`
 	TotalBurned        float64             `json:"total_burned"`
 	TotalFeesPaid      float64             `json:"total_fees_paid"`
+	TotalFeesUsed      float64             `json:"total_fees_used"`
 	UnclaimedBalance   float64             `json:"unclaimed_balance,omitempty"`
 	SpendableBalance   float64             `json:"spendable_balance"`
 	FrozenBond         float64             `json:"frozen_bond"`
@@ -53,17 +54,13 @@ type Account struct {
 	IsRevealed         bool                `json:"is_revealed"`
 	IsBaker            bool                `json:"is_baker"`
 	IsContract         bool                `json:"is_contract"`
-	NOps               int                 `json:"n_ops"`
-	NOpsFailed         int                 `json:"n_ops_failed"`
-	NTx                int                 `json:"n_tx"`
-	NDelegation        int                 `json:"n_delegation"`
-	NOrigination       int                 `json:"n_origination"`
-	NConstants         int                 `json:"n_contstants"`
-	TokenGenMin        int64               `json:"token_gen_min"`
-	TokenGenMax        int64               `json:"token_gen_max"`
+	NTxSuccess         int                 `json:"n_tx_success"`
+	NTxFailed          int                 `json:"n_tx_failed"`
+	NTxOut             int                 `json:"n_tx_out"`
+	NTxIn              int                 `json:"n_tx_in"`
 	LifetimeRewards    float64             `json:"lifetime_rewards,omitempty"`
 	PendingRewards     float64             `json:"pending_rewards,omitempty"`
-	Metadata           map[string]Metadata `json:"metadata,omitempty" tzstats:"notable"`
+	Metadata           map[string]Metadata `json:"metadata,omitempty" tzpro:"notable"`
 	columns            []string            `json:"-"`
 }
 
@@ -184,6 +181,8 @@ func (a *Account) UnmarshalJSONBrief(data []byte) error {
 			acc.TotalBurned, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "total_fees_paid":
 			acc.TotalFeesPaid, err = strconv.ParseFloat(f.(json.Number).String(), 64)
+		case "total_fees_used":
+			acc.TotalFeesUsed, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "unclaimed_balance":
 			acc.UnclaimedBalance, err = strconv.ParseFloat(f.(json.Number).String(), 64)
 		case "spendable_balance":
@@ -204,22 +203,14 @@ func (a *Account) UnmarshalJSONBrief(data []byte) error {
 			acc.IsBaker, err = strconv.ParseBool(f.(json.Number).String())
 		case "is_contract":
 			acc.IsContract, err = strconv.ParseBool(f.(json.Number).String())
-		case "n_ops":
-			acc.NOps, err = strconv.Atoi(f.(json.Number).String())
-		case "n_ops_failed":
-			acc.NOpsFailed, err = strconv.Atoi(f.(json.Number).String())
-		case "n_tx":
-			acc.NTx, err = strconv.Atoi(f.(json.Number).String())
-		case "n_delegation":
-			acc.NDelegation, err = strconv.Atoi(f.(json.Number).String())
-		case "n_origination":
-			acc.NOrigination, err = strconv.Atoi(f.(json.Number).String())
-		case "n_constants":
-			acc.NConstants, err = strconv.Atoi(f.(json.Number).String())
-		case "token_gen_min":
-			acc.TokenGenMin, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
-		case "token_gen_max":
-			acc.TokenGenMax, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "n_tx_success":
+			acc.NTxSuccess, err = strconv.Atoi(f.(json.Number).String())
+		case "n_tx_failed":
+			acc.NTxFailed, err = strconv.Atoi(f.(json.Number).String())
+		case "n_tx_out":
+			acc.NTxOut, err = strconv.Atoi(f.(json.Number).String())
+		case "n_tx_in":
+			acc.NTxIn, err = strconv.Atoi(f.(json.Number).String())
 		case "first_seen_time":
 			var ts int64
 			ts, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
@@ -315,7 +306,7 @@ func (c *Client) NewAccountQuery() AccountQuery {
 	}
 	q := tableQuery{
 		client:  c,
-		Params:  c.params.Copy(),
+		Params:  c.base.Copy(),
 		Table:   "account",
 		Format:  FormatJSON,
 		Limit:   DefaultLimit,

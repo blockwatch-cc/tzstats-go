@@ -55,6 +55,10 @@ func (v BigmapValue) GetBig(path string) (*big.Int, bool) {
 	return getPathBig(v.Value, path)
 }
 
+func (v BigmapValue) GetZ(path string) (tezos.Z, bool) {
+	return getPathZ(v.Value, path)
+}
+
 func (v BigmapValue) GetTime(path string) (time.Time, bool) {
 	return getPathTime(v.Value, path)
 }
@@ -230,7 +234,7 @@ func (c *Client) NewBigmapValueQuery() BigmapValueQuery {
 	}
 	q := tableQuery{
 		client:  c,
-		Params:  c.params.Copy(),
+		Params:  c.base.Copy(),
 		Table:   "bigmap_values",
 		Format:  FormatJSON,
 		Limit:   DefaultLimit,
