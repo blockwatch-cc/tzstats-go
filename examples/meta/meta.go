@@ -28,7 +28,7 @@ func run() error {
 	ctx := context.Background()
 
 	// create a new SDK client
-	c, err := tzstats.NewClient("https://api.tzstats.io", nil)
+	c, err := tzstats.NewClient("https://api.tzstats.com", nil)
 	if err != nil {
 		return err
 	}

@@ -40,6 +40,7 @@ type Chain struct {
 	TotalConstants       int64     `json:"total_constants"`
 	TotalSetLimits       int64     `json:"total_set_limits"`
 	TotalStorageBytes    int64     `json:"total_storage_bytes"`
+	TotalTicketTransfers int64     `json:"total_ticket_transfers"`
 	FundedAccounts       int64     `json:"funded_accounts"`
 	DustAccounts         int64     `json:"dust_accounts"`
 	GhostAccounts        int64     `json:"ghost_accounts"`
@@ -186,6 +187,8 @@ func (c *Chain) UnmarshalJSONBrief(data []byte) error {
 			cc.TotalSetLimits, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "total_storage_bytes":
 			cc.TotalStorageBytes, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
+		case "total_ticket_transfers":
+			cc.TotalTicketTransfers, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "funded_accounts":
 			cc.FundedAccounts, err = strconv.ParseInt(f.(json.Number).String(), 10, 64)
 		case "dust_accounts":

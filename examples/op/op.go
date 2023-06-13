@@ -11,7 +11,7 @@ import (
 
 func main() {
 	// use default Mainnet client
-	c, _ := tzstats.NewClient("https://api.tzstats.io", nil)
+	c, _ := tzstats.NewClient("https://api.tzstats.com", nil)
 	ctx := context.Background()
 
 	q := c.NewOpQuery()

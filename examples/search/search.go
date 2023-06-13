@@ -25,7 +25,7 @@ var (
 func init() {
 	flags.Usage = func() {}
 	flags.BoolVar(&verbose, "v", false, "be verbose")
-	flags.StringVar(&index, "index", "https://api.tzstats.io", "TzPro API Url")
+	flags.StringVar(&index, "index", "https://api.tzstats.com", "TzStats API Url")
 }
 
 func main() {

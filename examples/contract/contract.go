@@ -18,7 +18,7 @@ import (
 	"blockwatch.cc/tzgo/micheline"
 	"blockwatch.cc/tzgo/tezos"
 	"blockwatch.cc/tzstats-go/tzstats"
-	"github.com/daviddengcn/go-colortext"
+	ct "github.com/daviddengcn/go-colortext"
 	"github.com/echa/log"
 )
 
@@ -35,8 +35,8 @@ var (
 func init() {
 	flags.Usage = func() {}
 	flags.BoolVar(&verbose, "v", false, "be verbose")
-	flags.StringVar(&node, "node", "http://127.0.0.1:8732", "Tezos node url")
-	flags.StringVar(&index, "index", "http://127.0.0.1:8000", "TzPro API url")
+	flags.StringVar(&node, "node", "https://rpc.tzstats.com", "Tezos node url")
+	flags.StringVar(&index, "index", "https://api.tzstats.com", "TzStats API url")
 	flags.BoolVar(&withPrim, "prim", false, "show primitives")
 	flags.BoolVar(&withUnpack, "unpack", false, "unpack packed contract data")
 	flags.BoolVar(&nocolor, "no-color", false, "disable color output")

@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	ClientVersion    = "0.15.0"
+	ClientVersion    = "0.17.0"
 	DefaultLimit     = 50000
 	DefaultCacheSize = 2048
 	userAgent        = "tzstats-go/v" + ClientVersion

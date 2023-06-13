@@ -34,7 +34,7 @@ func init() {
 	flags.Usage = func() {}
 	flags.BoolVar(&verbose, "v", false, "be verbose")
 	flags.BoolVar(&nofail, "nofail", false, "no fail on IPFS error")
-	flags.StringVar(&index, "index", "https://api.tzstats.io", "TzStats API URL")
+	flags.StringVar(&index, "index", "https://api.tzstats.com", "TzStats API URL")
 	flags.StringVar(&ipfs, "ipfs", "https://ipfs.tzstats.com", "IPFS gateway URL")
 	flags.IntVar(&offset, "offset", 0, "NFT List offset")
 	flags.StringVar(&store, "store", "nfts/", "path where we store metadata downloaded frm IPFS")

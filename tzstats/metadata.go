@@ -319,9 +319,7 @@ type BakerMetadata struct {
 	Sponsored      bool    `json:"sponsored,omitempty"`
 }
 
-type PayoutMetadata struct {
-	From []tezos.Address `json:"from,omitempty"`
-}
+type PayoutMetadata []tezos.Address
 
 type LocationMetadata struct {
 	Country   iso.Country      `json:"country,omitempty"`
